@@ -55,29 +55,29 @@ export default function HomePage() {
             </div>
 
             {/* Hero Illustration */}
-            <div className="hidden lg:flex justify-center relative">
-              <div className="relative w-full max-w-md aspect-square">
+            <div className="flex justify-center relative mt-8 lg:mt-0">
+              <div className="relative w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] lg:max-w-md aspect-square">
                 {/* Decorative floating elements */}
-                <div className="absolute top-10 right-10 p-4 rounded-2xl glass shadow-xl animate-bounce" style={{ animationDuration: '3s' }}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[var(--color-primary-100)] flex items-center justify-center text-[var(--color-primary-600)]">
-                      <MapPin className="w-5 h-5" />
+                <div className="absolute -top-2 right-0 sm:top-10 sm:right-10 p-3 sm:p-4 rounded-2xl glass shadow-xl animate-bounce" style={{ animationDuration: '3s' }}>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--color-primary-100)] flex items-center justify-center text-[var(--color-primary-600)]">
+                      <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold">Location Match!</p>
-                      <p className="text-xs text-[var(--text-secondary)]">200m away</p>
+                      <p className="text-[10px] sm:text-xs font-semibold">Location Match!</p>
+                      <p className="text-[10px] sm:text-xs text-[var(--text-secondary)]">200m away</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="absolute bottom-20 left-0 p-4 rounded-2xl glass shadow-xl animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[var(--color-success-light)] flex items-center justify-center text-[var(--color-success)]">
-                      <CheckCircle className="w-5 h-5" />
+                <div className="absolute -bottom-2 left-0 sm:bottom-20 sm:left-0 p-3 sm:p-4 rounded-2xl glass shadow-xl animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--color-success-light)] flex items-center justify-center text-[var(--color-success)]">
+                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold">Item Returned</p>
-                      <p className="text-xs text-[var(--text-secondary)]">Just now</p>
+                      <p className="text-[10px] sm:text-xs font-semibold">Item Returned</p>
+                      <p className="text-[10px] sm:text-xs text-[var(--text-secondary)]">Just now</p>
                     </div>
                   </div>
                 </div>
