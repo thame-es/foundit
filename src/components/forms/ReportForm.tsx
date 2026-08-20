@@ -509,8 +509,9 @@ export function ReportForm({ type, itemId, initialData }: ReportFormProps) {
             Back
           </Button>
 
-          {step < 3 ? (
+          {step < 3 && (
             <Button 
+              key="continue-btn"
               type="button" 
               onClick={nextStep}
               icon={<ChevronRight className="w-4 h-4" />}
@@ -518,8 +519,11 @@ export function ReportForm({ type, itemId, initialData }: ReportFormProps) {
             >
               Continue
             </Button>
-          ) : (
+          )}
+
+          {step === 3 && (
             <Button 
+              key="submit-btn"
               type="submit" 
               disabled={isSubmitting}
               icon={isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}

@@ -98,6 +98,7 @@ export function LocationSearch({ onLocationSelect, placeholder = 'Search for a l
         <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto">
           {results.map((result) => (
             <button
+              type="button"
               key={result.place_id}
               onClick={() => handleSelect(result)}
               className="w-full flex items-start gap-3 px-4 py-3 hover:bg-[var(--bg-tertiary)] text-left transition-colors border-b border-[var(--border-primary)] last:border-0"
