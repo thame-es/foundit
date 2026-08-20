@@ -4,11 +4,13 @@ import crypto from 'crypto';
 import { appConfig } from '@/lib/config';
 
 // Define expected structure of sharp
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let sharp: any;
 
 try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   sharp = require('sharp');
-} catch (e) {
+} catch {
   console.warn('Sharp is not installed, image processing will fallback or fail depending on usage.');
 }
 
