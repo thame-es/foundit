@@ -1,6 +1,9 @@
 import nodemailer from 'nodemailer';
+import { render } from '@react-email/render';
 import { logger } from '@/lib/logger';
 import { appConfig } from '@/lib/config';
+import WelcomeEmailTemplate from '@/emails/WelcomeEmail';
+import MessageNotificationEmailTemplate from '@/emails/MessageNotificationEmail';
 
 // Create a transporter using environment variables.
 // If using Gmail, SMTP_HOST="smtp.gmail.com", SMTP_PORT=465, SMTP_SECURE=true
@@ -28,22 +31,12 @@ export async function sendWelcomeEmail(to: string, displayName: string) {
 
   const subject = `Welcome to ${appConfig.name}!`;
   
-  const html = `
-    <div style="font-family: sans-serif; max-w-lg; margin: 0 auto; color: #333;">
-      <h2 style="color: #2563eb;">Welcome to ${appConfig.name}, ${displayName}! 🎉</h2>
-      <p>We are thrilled to have you join our community.</p>
-      <p>Whether you're here to help someone find what they lost, or you're looking for something yourself, you're in the right place.</p>
-      <br />
-      <p><strong>Next steps:</strong></p>
-      <ul>
-        <li><a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings">Complete your profile</a></li>
-        <li><a href="${process.env.NEXT_PUBLIC_APP_URL}/search">Browse recent items</a></li>
-      </ul>
-      <br />
-      <p>Thanks,</p>
-      <p>The ${appConfig.name} Team</p>
-    </div>
-  `;
+  const html = await render(
+    WelcomeEmailTemplate({
+      displayName,
+      appUrl: process.env.NEXT_PUBLIC_APP_URL || '',
+    })
+  );
 
   try {
     await transporter.sendMail({
@@ -74,25 +67,14 @@ export async function sendNewMessageNotification(
 
   const subject = `New Message from ${senderName} regarding ${itemTitle}`;
   
-  const html = `
-    <div style="font-family: sans-serif; max-w-lg; margin: 0 auto; color: #333;">
-      <h2 style="color: #2563eb;">You have a new message! 📩</h2>
-      <p><strong>${senderName}</strong> sent you a message about <strong>"${itemTitle}"</strong>.</p>
-      
-      <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0; font-style: italic;">
-        "${messageSnippet.length > 100 ? messageSnippet.substring(0, 100) + '...' : messageSnippet}"
-      </div>
-      
-      <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/messages" style="display: inline-block; background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-        Reply to Message
-      </a>
-      
-      <br /><br />
-      <p style="font-size: 12px; color: #6b7280;">
-        You are receiving this because you have notifications enabled for ${appConfig.name}.
-      </p>
-    </div>
-  `;
+  const html = await render(
+    MessageNotificationEmailTemplate({
+      senderName,
+      itemTitle,
+      messageSnippet,
+      appUrl: process.env.NEXT_PUBLIC_APP_URL || '',
+    })
+  );
 
   try {
     await transporter.sendMail({
