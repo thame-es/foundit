@@ -121,8 +121,8 @@ export async function sendMessage(formData: FormData) {
     const senderUser = conversation.user1Id === user.userId ? conversation.user1 : conversation.user2;
     const itemTitle = conversation.claim?.foundItem?.title || 'an item';
 
-    // Trigger email notification (fire and forget)
-    sendNewMessageNotification(
+    // Trigger email notification (must await in Vercel serverless functions)
+    await sendNewMessageNotification(
       recipientUser.email,
       senderUser.displayName,
       itemTitle,

@@ -77,8 +77,8 @@ export async function register(formData: FormData): Promise<ActionResult> {
 
     logger.info('User registered', { userId: user.id, email });
     
-    // Trigger welcome email (fire and forget)
-    sendWelcomeEmail(email, displayName).catch(console.error);
+    // Trigger welcome email (must await in Vercel serverless functions)
+    await sendWelcomeEmail(email, displayName).catch(console.error);
     
     return { success: true };
   } catch (error) {

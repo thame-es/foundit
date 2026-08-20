@@ -144,8 +144,8 @@ export async function GET(request: NextRequest) {
 
       logger.info('User registered via Google', { userId: user.id, email });
       
-      // Trigger welcome email
-      sendWelcomeEmail(email, user.displayName).catch(console.error);
+      // Trigger welcome email (must await in Vercel serverless functions)
+      await sendWelcomeEmail(email, user.displayName).catch(console.error);
     }
 
     // Create session
