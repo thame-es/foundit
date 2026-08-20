@@ -1,10 +1,14 @@
 import Link from 'next/link';
 import { Search, MapPin, ShieldCheck, CheckCircle, ArrowRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { defaultCategories } from '@/lib/config';
 
 export default function HomePage() {
+  const t = useTranslations('Hero');
+  const tFeatures = useTranslations('Features');
+
   return (
     <div className="flex flex-col w-full">
       {/* ─── Hero Section ───────────────────────────── */}
@@ -20,19 +24,19 @@ export default function HomePage() {
             {/* Hero Text */}
             <div className="max-w-2xl">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6">
-                Lost something? <br />
-                <span className="gradient-text">Find your way back.</span>
+                {t('title1')} <br />
+                <span className="gradient-text">{t('title2')}</span>
               </h1>
               <p className="text-lg sm:text-xl text-[var(--text-secondary)] mb-8 max-w-lg">
-                The secure, community-driven platform to report lost items and safely connect with finders. Zero cost, total peace of mind.
+                {t('description')}
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 mb-10">
                 <Link href="/report/lost">
-                  <Button size="xl" fullWidth>I Lost an Item</Button>
+                  <Button size="xl" fullWidth>{t('reportLostButton')}</Button>
                 </Link>
                 <Link href="/report/found">
-                  <Button size="xl" variant="secondary" fullWidth>I Found an Item</Button>
+                  <Button size="xl" variant="secondary" fullWidth>{t('reportFoundButton')}</Button>
                 </Link>
               </div>
 
@@ -124,17 +128,17 @@ export default function HomePage() {
               <div className="w-14 h-14 rounded-2xl bg-[var(--color-primary-100)] text-[var(--color-primary-600)] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Search className="w-7 h-7" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Does FoundIt charge a fee?</h3>
-              <p className="text-[var(--text-secondary)]">No, FoundIt is completely free to use for both reporting lost items and claiming found ones. We believe helping people shouldn&apos;t cost money.</p>
+              <h3 className="text-xl font-bold mb-3">{tFeatures('smartMatching')}</h3>
+              <p className="text-[var(--text-secondary)]">{tFeatures('smartMatchingDesc')}</p>
             </div>
 
             <div className="p-8 rounded-3xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] relative group hover:border-[var(--color-accent-400)] transition-colors">
               <div className="w-14 h-14 rounded-2xl bg-[var(--color-accent-100)] text-[var(--color-accent-600)] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <ShieldCheck className="w-7 h-7" />
               </div>
-              <h3 className="text-xl font-bold mb-3">2. Verify Ownership</h3>
+              <h3 className="text-xl font-bold mb-3">{tFeatures('secureChat')}</h3>
               <p className="text-[var(--text-secondary)]">
-                Our claim system requires the claimant to provide specific, non-public details about the item to prove it&apos;s theirs.
+                {tFeatures('secureChatDesc')}
               </p>
             </div>
 
@@ -142,9 +146,9 @@ export default function HomePage() {
               <div className="w-14 h-14 rounded-2xl bg-[var(--color-secondary-100)] text-[var(--color-secondary-600)] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <CheckCircle className="w-7 h-7" />
               </div>
-              <h3 className="text-xl font-bold mb-3">3. Safe Return</h3>
+              <h3 className="text-xl font-bold mb-3">{tFeatures('community')}</h3>
               <p className="text-[var(--text-secondary)]">
-                Use our secure, anonymous messaging system to arrange a safe meetup or delivery without exposing phone numbers.
+                {tFeatures('communityDesc')}
               </p>
             </div>
           </div>

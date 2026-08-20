@@ -1,0 +1,25 @@
+{
+  "Header": {
+    "search": "Search",
+    "reportFound": "Report Found Item",
+    "reportLost": "Report Lost Item",
+    "signIn": "Sign In",
+    "dashboard": "Dashboard"
+  },
+  "Hero": {
+    "badge": "Community-Driven Recovery",
+    "title1": "Lost it?",
+    "title2": "Find it here.",
+    "description": "The smartest way to recover lost belongings and help others find theirs. Join our community of honest finders today.",
+    "reportLostButton": "Report Lost Item",
+    "reportFoundButton": "I Found Something"
+  },
+  "Features": {
+    "smartMatching": "Smart Matching",
+    "smartMatchingDesc": "Our AI helps connect lost items with found reports instantly.",
+    "secureChat": "Secure Chat",
+    "secureChatDesc": "Communicate safely with finders without sharing personal details.",
+    "community": "Community Driven",
+    "communityDesc": "Join thousands of honest people helping each other."
+  }
+}

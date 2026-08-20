@@ -8,8 +8,12 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { HeaderBadges } from '@/components/layout/HeaderBadges';
 import { NavigationProgress } from '@/components/NavigationProgress';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
 import { getCurrentUser } from '@/lib/auth/session';
 import { appConfig } from '@/lib/config';
+import { notFound } from 'next/navigation';
+import { routing } from '@/i18n/routing';
 
 // Initialize Inter font
 const inter = Inter({ 
@@ -37,14 +41,25 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
+  
+  if (!routing.locales.includes(locale as any)) {
+    notFound();
+  }
+
+  // Provide messages to the client
+  const messages = await getMessages();
+
   // Only await the fast session check — no DB queries blocking the render
   const user = await getCurrentUser();
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}>
         <ThemeProvider>
           <ToastProvider>
@@ -57,7 +72,9 @@ export default async function RootLayout({
               <HeaderBadges />
             </Suspense>
             <main className="flex-grow flex flex-col">
-              {children}
+              <NextIntlClientProvider messages={messages}>
+                {children}
+              </NextIntlClientProvider>
             </main>
             <Footer />
           </ToastProvider>

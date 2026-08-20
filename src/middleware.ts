@@ -1,12 +1,19 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import createMiddleware from 'next-intl/middleware';
+import { routing } from './i18n/routing';
 
 // Routes that require authentication
 const protectedPaths = ['/dashboard', '/report', '/admin'];
+const authPaths = ['/login', '/register', '/forgot-password'];
+
+const intlMiddleware = createMiddleware(routing);
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const response = NextResponse.next();
+  
+  // Hand off to next-intl for locale routing
+  const response = intlMiddleware(request);
 
   // ─── Security Headers ────────────────────
   response.headers.set('X-Content-Type-Options', 'nosniff');
@@ -19,21 +26,22 @@ export function middleware(request: NextRequest) {
   }
 
   // ─── Route Protection (cookie check) ─────
-  // Note: Full auth verification happens server-side in page components.
-  // This middleware provides a fast redirect for obvious unauthenticated access.
   const sessionCookie = request.cookies.get('foundit_session');
-  const isProtected = protectedPaths.some(path => pathname.startsWith(path));
+  
+  // Strip locale prefix for checking paths (e.g. /en/dashboard -> /dashboard)
+  const pathWithoutLocale = pathname.replace(/^\/(en|ml)/, '') || '/';
+  
+  const isProtected = protectedPaths.some(path => pathWithoutLocale.startsWith(path));
 
   if (isProtected && !sessionCookie) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
+    const loginUrl = new URL(`/${routing.defaultLocale}/login`, request.url);
+    loginUrl.searchParams.set('redirect', pathWithoutLocale);
     return NextResponse.redirect(loginUrl);
   }
 
   // ─── Prevent logged-in users from accessing auth pages ─
-  const authPaths = ['/login', '/register', '/forgot-password'];
-  if (authPaths.includes(pathname) && sessionCookie) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  if (authPaths.includes(pathWithoutLocale) && sessionCookie) {
+    return NextResponse.redirect(new URL(`/${routing.defaultLocale}/dashboard`, request.url));
   }
 
   return response;
