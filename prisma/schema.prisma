@@ -1,0 +1,516 @@
+// ===========================================
+// FoundIt — Prisma Database Schema
+// ===========================================
+// 20+ models covering all application features.
+// SQLite for V1, migratable to PostgreSQL.
+// ===========================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── User & Authentication ───────────────────
+
+model User {
+  id              String    @id @default(cuid())
+  displayName     String
+  email           String    @unique
+  emailVerified   Boolean   @default(false)
+  emailVerifiedAt DateTime?
+  passwordHash    String
+  avatar          String?
+  googleId        String?   @unique
+  role            String    @default("user") // user, admin
+  status          String    @default("active") // active, suspended, deactivated
+  bio             String?
+  city            String?
+  country         String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  lastLoginAt     DateTime?
+
+  // Preferences stored as JSON string
+  notificationPrefs String? // JSON: { email: boolean, inApp: boolean }
+
+  sessions           Session[]
+  passwordResetTokens PasswordResetToken[]
+  lostItems          LostItem[]
+  foundItems         FoundItem[]
+  claims             Claim[]           @relation("ClaimantClaims")
+  sentMessages       Message[]         @relation("SentMessages")
+  notifications      Notification[]
+  savedItems         SavedItem[]
+  reports            Report[]          @relation("ReportedBy")
+  reportsAgainst     Report[]          @relation("ReportedUser")
+  blockedUsers       UserBlock[]       @relation("BlockingUser")
+  blockedBy          UserBlock[]       @relation("BlockedUser")
+  auditLogs          AuditLog[]
+  contactSubmissions ContactSubmission[]
+  conversationsAsUser1 Conversation[]  @relation("ConversationUser1")
+  conversationsAsUser2 Conversation[]  @relation("ConversationUser2")
+  businessAccount    BusinessAccount?
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId])
+}
+
+// ─── Categories ──────────────────────────────
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  icon        String    @default("package")
+  description String?
+  sensitive   Boolean   @default(false)
+  enabled     Boolean   @default(true)
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  lostItems  LostItem[]
+  foundItems FoundItem[]
+
+  @@index([slug])
+  @@index([enabled, order])
+}
+
+// ─── Lost Items ──────────────────────────────
+
+model LostItem {
+  id                String    @id @default(cuid())
+  userId            String
+  categoryId        String
+  title             String
+  slug              String    @unique
+  publicDescription String
+  brand             String?
+  model             String?
+  colour            String?
+  quantity          Int       @default(1)
+  status            String    @default("active") // active, possible_match, recovered, expired, hidden
+  rewardOffered     Boolean   @default(false)
+  rewardDescription String?
+  dateLost          DateTime
+  dateApproximate   Boolean   @default(false)
+  timeLost          String?   // e.g. "morning", "14:00-16:00"
+  city              String?
+  region            String?
+  country           String?
+  area              String?
+  latitude          Float?
+  longitude         Float?
+  locationUncertain Boolean   @default(false)
+  distinguishingFeatures String?
+  contactPreference String    @default("in_app") // in_app, email
+  featured          Boolean   @default(false)
+  expiresAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+
+  images           ItemImage[]
+  possibleLocations PossibleLocation[]
+  savedBy          SavedItem[]
+  reports          Report[]
+  conversations    Conversation[]
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([dateLost])
+  @@index([city])
+  @@index([createdAt])
+  @@index([slug])
+  @@index([latitude, longitude])
+}
+
+model FoundItem {
+  id                      String    @id @default(cuid())
+  userId                  String
+  categoryId              String
+  title                   String
+  slug                    String    @unique
+  publicDescription       String
+  brand                   String?
+  model                   String?
+  colour                  String?
+  status                  String    @default("active") // active, claim_pending, claimed, returned, expired, hidden
+  dateFound               DateTime
+  dateApproximate         Boolean   @default(false)
+  timeFound               String?
+  city                    String?
+  region                  String?
+  country                 String?
+  area                    String?
+  latitude                Float?
+  longitude               Float?
+  privateVerificationDetail String? // NEVER expose publicly
+  featured                Boolean   @default(false)
+  expiresAt               DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+
+  images   ItemImage[]
+  claims   Claim[]
+  savedBy  SavedItem[]
+  reports  Report[]
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([dateFound])
+  @@index([city])
+  @@index([createdAt])
+  @@index([slug])
+  @@index([latitude, longitude])
+}
+
+model ItemImage {
+  id          String   @id @default(cuid())
+  lostItemId  String?
+  foundItemId String?
+  filename    String   // UUID-based filename
+  originalName String  // For display only, not used for serving
+  mimeType    String
+  size        Int
+  width       Int?
+  height      Int?
+  thumbnailPath String?
+  mediumPath  String?
+  order       Int      @default(0)
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  lostItem  LostItem?  @relation(fields: [lostItemId], references: [id], onDelete: Cascade)
+  foundItem FoundItem? @relation(fields: [foundItemId], references: [id], onDelete: Cascade)
+
+  @@index([lostItemId])
+  @@index([foundItemId])
+}
+
+model PossibleLocation {
+  id         String  @id @default(cuid())
+  lostItemId String
+  name       String  // e.g. "Connolly Station"
+  address    String?
+  city       String?
+  latitude   Float?
+  longitude  Float?
+  order      Int     @default(0)
+  createdAt  DateTime @default(now())
+
+  lostItem LostItem @relation(fields: [lostItemId], references: [id], onDelete: Cascade)
+
+  @@index([lostItemId])
+  @@index([latitude, longitude])
+}
+
+// ─── Claims ──────────────────────────────────
+
+model Claim {
+  id            String    @id @default(cuid())
+  foundItemId   String
+  claimantId    String
+  status        String    @default("submitted") // see claimStates in config
+  dateLost      DateTime?
+  locationLost  String?
+  description   String    // Additional detail about the item
+  distinguishingFeature String? // What distinguishing feature?
+  reasonForClaim String   // Why they believe it's theirs
+  matchScore    Float?
+  reviewNotes   String?   // Finder's internal notes
+  adminNotes    String?   // Admin notes for disputes
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  foundItem    FoundItem     @relation(fields: [foundItemId], references: [id], onDelete: Cascade)
+  claimant     User          @relation("ClaimantClaims", fields: [claimantId], references: [id], onDelete: Cascade)
+  evidence     ClaimEvidence[]
+  conversation Conversation?
+  payment      Payment?
+
+  @@index([foundItemId])
+  @@index([claimantId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ClaimEvidence {
+  id         String   @id @default(cuid())
+  claimId    String
+  filename   String
+  originalName String
+  mimeType   String
+  size       Int
+  description String?
+  createdAt  DateTime @default(now())
+
+  claim Claim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
+}
+
+// ─── Messaging ───────────────────────────────
+
+model Conversation {
+  id          String    @id @default(cuid())
+  claimId     String?   @unique
+  lostItemId  String?
+  user1Id     String    // Typically the finder
+  user2Id     String    // Typically the claimant or owner
+  status      String    @default("active") // active, closed, blocked
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  claim       Claim?    @relation(fields: [claimId], references: [id])
+  lostItem    LostItem? @relation(fields: [lostItemId], references: [id])
+  user1       User      @relation("ConversationUser1", fields: [user1Id], references: [id])
+  user2       User      @relation("ConversationUser2", fields: [user2Id], references: [id])
+  messages    Message[]
+
+  @@index([claimId])
+  @@index([lostItemId])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@index([status])
+  @@index([updatedAt])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  readAt         DateTime?
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+// ─── Notifications ───────────────────────────
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String    // match_found, claim_received, claim_accepted, claim_rejected, new_message, etc.
+  title     String
+  body      String
+  link      String?   // URL to navigate to
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, readAt])
+  @@index([createdAt])
+}
+
+// ─── Saved Items ─────────────────────────────
+
+model SavedItem {
+  id          String   @id @default(cuid())
+  userId      String
+  lostItemId  String?
+  foundItemId String?
+  createdAt   DateTime @default(now())
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lostItem  LostItem?  @relation(fields: [lostItemId], references: [id], onDelete: Cascade)
+  foundItem FoundItem? @relation(fields: [foundItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lostItemId])
+  @@unique([userId, foundItemId])
+  @@index([userId])
+}
+
+// ─── Reports ─────────────────────────────────
+
+model Report {
+  id            String   @id @default(cuid())
+  reporterId    String
+  reportedUserId String?
+  lostItemId    String?
+  foundItemId   String?
+  conversationId String?
+  reason        String   // suspected_scam, fake_listing, etc.
+  description   String?
+  status        String   @default("pending") // pending, reviewing, resolved, dismissed
+  adminNotes    String?
+  resolvedAt    DateTime?
+  createdAt     DateTime @default(now())
+
+  reporter     User       @relation("ReportedBy", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser User?      @relation("ReportedUser", fields: [reportedUserId], references: [id])
+  lostItem     LostItem?  @relation(fields: [lostItemId], references: [id], onDelete: SetNull)
+  foundItem    FoundItem? @relation(fields: [foundItemId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([reporterId])
+  @@index([createdAt])
+}
+
+// ─── User Blocks ─────────────────────────────
+
+model UserBlock {
+  id          String   @id @default(cuid())
+  blockingUserId String
+  blockedUserId  String
+  createdAt   DateTime @default(now())
+
+  blockingUser User @relation("BlockingUser", fields: [blockingUserId], references: [id], onDelete: Cascade)
+  blockedUser  User @relation("BlockedUser", fields: [blockedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([blockingUserId, blockedUserId])
+  @@index([blockingUserId])
+  @@index([blockedUserId])
+}
+
+// ─── Payments ────────────────────────────────
+
+model Payment {
+  id            String    @id @default(cuid())
+  claimId       String    @unique
+  amount        Float
+  currency      String    @default("EUR")
+  status        String    @default("pending") // pending, completed, failed, refunded, cancelled
+  provider      String    @default("simulated") // simulated, stripe
+  providerRef   String?   // External payment reference
+  paidAt        DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  claim Claim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
+  @@index([status])
+}
+
+// ─── Advertisements ──────────────────────────
+
+model Advertisement {
+  id        String    @id @default(cuid())
+  slot      String    // homepage, search, item_page, sidebar, footer
+  title     String
+  content   String    // HTML content or configuration JSON
+  imageUrl  String?
+  linkUrl   String?
+  enabled   Boolean   @default(false)
+  startDate DateTime?
+  endDate   DateTime?
+  order     Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([slot, enabled])
+}
+
+// ─── Audit Log ───────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String   // user_suspended, listing_removed, claim_accepted, etc.
+  target    String?  // e.g. "user:abc123", "listing:xyz789"
+  details   String?  // JSON additional context
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ─── Application Settings ────────────────────
+
+model ApplicationSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
+
+// ─── Contact Submissions ─────────────────────
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  userId    String?
+  name      String
+  email     String
+  topic     String
+  message   String
+  status    String   @default("pending") // pending, reviewed, replied, archived
+  adminNotes String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ─── Business Accounts (Future) ──────────────
+
+model BusinessAccount {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  organizationName String
+  organizationType String?  // university, hotel, transport, etc.
+  verified       Boolean  @default(false)
+  website        String?
+  phone          String?
+  address        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
