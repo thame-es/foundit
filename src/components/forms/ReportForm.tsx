@@ -117,6 +117,12 @@ export function ReportForm({ type, itemId, initialData }: ReportFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (step < 3) {
+      nextStep();
+      return;
+    }
+
     if (!validateStep()) return;
     
     setIsSubmitting(true);
