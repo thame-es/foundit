@@ -61,24 +61,24 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}>
-        <ThemeProvider>
-          <ToastProvider>
-            <Suspense fallback={null}>
-              <NavigationProgress />
-            </Suspense>
-            <Header user={user} />
-            {/* Stream badge counts in parallel — doesn't block page render */}
-            <Suspense fallback={null}>
-              <HeaderBadges />
-            </Suspense>
-            <main className="flex-grow flex flex-col">
-              <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider messages={messages}>
+          <ThemeProvider>
+            <ToastProvider>
+              <Suspense fallback={null}>
+                <NavigationProgress />
+              </Suspense>
+              <Header user={user} />
+              {/* Stream badge counts in parallel — doesn't block page render */}
+              <Suspense fallback={null}>
+                <HeaderBadges />
+              </Suspense>
+              <main className="flex-grow flex flex-col">
                 {children}
-              </NextIntlClientProvider>
-            </main>
-            <Footer />
-          </ToastProvider>
-        </ThemeProvider>
+              </main>
+              <Footer />
+            </ToastProvider>
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
