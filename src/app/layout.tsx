@@ -6,9 +6,9 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { ToastProvider } from '@/components/ui/Toast';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { HeaderBadges } from '@/components/layout/HeaderBadges';
 import { NavigationProgress } from '@/components/NavigationProgress';
 import { getCurrentUser } from '@/lib/auth/session';
-import { db } from '@/lib/db';
 import { appConfig } from '@/lib/config';
 
 // Initialize Inter font
@@ -34,38 +34,8 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Only await the fast session check — no DB queries blocking the render
   const user = await getCurrentUser();
-  let notificationCount = 0;
-  let messageCount = 0;
-
-  if (user) {
-    try {
-      // Get unread notifications
-      notificationCount = await db.notification.count({
-        where: { userId: user.userId, readAt: null },
-      });
-
-      // Get unread messages in active conversations
-      // We count messages where we are NOT the sender, and the message hasn't been read
-      const unreadMessages = await db.message.count({
-        where: {
-          senderId: { not: user.userId },
-          readAt: null,
-          conversation: {
-            OR: [
-              { user1Id: user.userId },
-              { user2Id: user.userId },
-            ],
-            status: 'active',
-          },
-        },
-      });
-      messageCount = unreadMessages;
-    } catch (e) {
-      // Ignore DB errors during layout render if DB isn't fully ready
-      console.error('Error fetching layout badges:', e);
-    }
-  }
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -75,7 +45,11 @@ export default async function RootLayout({
             <Suspense fallback={null}>
               <NavigationProgress />
             </Suspense>
-            <Header user={user} notificationCount={notificationCount} messageCount={messageCount} />
+            <Header user={user} />
+            {/* Stream badge counts in parallel — doesn't block page render */}
+            <Suspense fallback={null}>
+              <HeaderBadges />
+            </Suspense>
             <main className="flex-grow flex flex-col">
               {children}
             </main>

@@ -4,7 +4,7 @@
 // FoundIt — Header / Navigation
 // ===========================================
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -39,12 +39,27 @@ const navLinks = [
   { href: '/for-businesses', label: 'For Businesses', icon: Building2 },
 ];
 
-export function Header({ user, notificationCount = 0, messageCount = 0 }: HeaderProps) {
+export function Header({ user, notificationCount: initialNotifCount = 0, messageCount: initialMsgCount = 0 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(initialNotifCount);
+  const [messageCount, setMessageCount] = useState(initialMsgCount);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { theme, toggleTheme } = useTheme();
+
+  // Listen for streamed badge count updates
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail) {
+        setNotificationCount(detail.notificationCount ?? 0);
+        setMessageCount(detail.messageCount ?? 0);
+      }
+    };
+    window.addEventListener('header-badges-update', handler);
+    return () => window.removeEventListener('header-badges-update', handler);
+  }, []);
 
   const typeParam = searchParams.get('type');
   const currentPathWithParams = typeParam ? `${pathname}?type=${typeParam}` : pathname;
