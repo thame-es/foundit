@@ -8,18 +8,18 @@
   },
   "Hero": {
     "badge": "Community-Driven Recovery",
-    "title1": "Lost it?",
-    "title2": "Find it here.",
-    "description": "The smartest way to recover lost belongings and help others find theirs. Join our community of honest finders today.",
-    "reportLostButton": "Report Lost Item",
-    "reportFoundButton": "I Found Something"
+    "title1": "Lost something?",
+    "title2": "Find your way back.",
+    "description": "The secure, community-driven platform to report lost items and safely connect with finders. Zero cost, total peace of mind.",
+    "reportLostButton": "I Lost an Item",
+    "reportFoundButton": "I Found an Item"
   },
   "Features": {
-    "smartMatching": "Smart Matching",
-    "smartMatchingDesc": "Our AI helps connect lost items with found reports instantly.",
-    "secureChat": "Secure Chat",
-    "secureChatDesc": "Communicate safely with finders without sharing personal details.",
-    "community": "Community Driven",
-    "communityDesc": "Join thousands of honest people helping each other."
+    "smartMatching": "Does FindBack charge a fee?",
+    "smartMatchingDesc": "No, FindBack is completely free to use for both reporting lost items and claiming found ones. We believe helping people shouldn't cost money.",
+    "secureChat": "2. Verify Ownership",
+    "secureChatDesc": "Our claim system requires the claimant to provide specific, non-public details about the item to prove it's theirs.",
+    "community": "3. Safe Return",
+    "communityDesc": "Use our secure, anonymous messaging system to arrange a safe meetup or delivery without exposing phone numbers."
   }
 }
