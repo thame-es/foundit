@@ -9,6 +9,7 @@ import { getAuthenticatedUser } from '@/lib/auth/guards';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
+import { sendNewMessageNotification } from '@/lib/services/email';
 
 const sendMessageSchema = z.object({
   conversationId: z.string().optional(),
@@ -114,6 +115,19 @@ export async function sendMessage(formData: FormData) {
 
       return msg;
     });
+
+    // Determine recipient and sender objects for the email
+    const recipientUser = conversation.user1Id === user.userId ? conversation.user2 : conversation.user1;
+    const senderUser = conversation.user1Id === user.userId ? conversation.user1 : conversation.user2;
+    const itemTitle = conversation.claim?.foundItem?.title || 'an item';
+
+    // Trigger email notification (fire and forget)
+    sendNewMessageNotification(
+      recipientUser.email,
+      senderUser.displayName,
+      itemTitle,
+      content
+    ).catch(console.error);
 
     revalidatePath(`/messages/${conversation.id}`);
     revalidatePath('/messages');

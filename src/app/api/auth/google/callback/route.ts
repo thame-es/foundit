@@ -8,6 +8,7 @@ import { db } from '@/lib/db';
 import { createSession } from '@/lib/auth/session';
 import { logger } from '@/lib/logger';
 import { hashPassword } from '@/lib/auth/password';
+import { sendWelcomeEmail } from '@/lib/services/email';
 import crypto from 'crypto';
 
 export async function GET(request: NextRequest) {
@@ -142,6 +143,9 @@ export async function GET(request: NextRequest) {
       });
 
       logger.info('User registered via Google', { userId: user.id, email });
+      
+      // Trigger welcome email
+      sendWelcomeEmail(email, user.displayName).catch(console.error);
     }
 
     // Create session

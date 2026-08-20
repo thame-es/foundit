@@ -15,6 +15,7 @@ import { enforceRateLimit } from '@/lib/rate-limit';
 import { appConfig } from '@/lib/config';
 import { logger } from '@/lib/logger';
 import { generateToken } from '@/lib/utils';
+import { sendWelcomeEmail } from '@/lib/services/email';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import crypto from 'crypto';
@@ -75,6 +76,9 @@ export async function register(formData: FormData): Promise<ActionResult> {
     await createSession(user);
 
     logger.info('User registered', { userId: user.id, email });
+    
+    // Trigger welcome email (fire and forget)
+    sendWelcomeEmail(email, displayName).catch(console.error);
     
     return { success: true };
   } catch (error) {
