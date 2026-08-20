@@ -94,7 +94,7 @@ export default async function InboxPage() {
                       
                       <div className="flex items-center gap-2 mb-2">
                         <Badge size="sm" variant="secondary" className="truncate max-w-full">
-                          Re: {conv.claim.foundItem.title}
+                          Re: {conv.claim ? conv.claim.foundItem.title : (conv.lostItem ? conv.lostItem.title : 'Item')}
                         </Badge>
                       </div>
 

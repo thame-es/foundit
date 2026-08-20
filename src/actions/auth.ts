@@ -390,7 +390,7 @@ export async function deleteAccount(): Promise<ActionResult> {
     await db.notification.deleteMany({ where: { userId } });
     await db.savedItem.deleteMany({ where: { userId } });
     await db.report.deleteMany({ where: { OR: [{ reporterId: userId }, { reportedUserId: userId }] } });
-    await db.userBlock.deleteMany({ where: { OR: [{ blockerId: userId }, { blockedId: userId }] } });
+    await db.userBlock.deleteMany({ where: { OR: [{ blockingUserId: userId }, { blockedUserId: userId }] } });
     await db.auditLog.deleteMany({ where: { userId } });
     await db.contactSubmission.deleteMany({ where: { userId } });
 

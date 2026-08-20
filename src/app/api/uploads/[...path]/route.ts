@@ -88,7 +88,7 @@ export async function GET(
       else if (ext === '.png') contentType = 'image/png';
       else if (ext === '.webp') contentType = 'image/webp';
 
-      const response = new NextResponse(fileBuffer);
+      const response = new NextResponse(fileBuffer as any);
       response.headers.set('Content-Type', contentType);
       // Cache public images heavily, private images require re-validation
       if (imageRecord.isPublic) {

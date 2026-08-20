@@ -19,7 +19,7 @@ async function main() {
           icon: category.icon,
           description: category.description,
           order: category.order,
-          sensitive: category.sensitive || false,
+          sensitive: (category as any).sensitive || false,
         }
       });
       console.log(`Created category: ${category.name}`);
