@@ -13,9 +13,7 @@ import {
   LayoutDashboard, Sun, Moon, LogOut, ChevronDown,
   Shield, HelpCircle, Building2, MapPin
 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 import { Logo } from '@/components/Logo';
-import { LanguageSwitcher } from './LanguageSwitcher';
 import { Button } from '@/components/ui/Button';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
@@ -42,7 +40,6 @@ const navLinks = [
 ];
 
 export function Header({ user, notificationCount: initialNotifCount = 0, messageCount: initialMsgCount = 0 }: HeaderProps) {
-  const t = useTranslations('Header');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(initialNotifCount);
@@ -119,9 +116,6 @@ export function Header({ user, notificationCount: initialNotifCount = 0, message
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-2">
-            
-            <LanguageSwitcher />
-
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -223,7 +217,7 @@ export function Header({ user, notificationCount: initialNotifCount = 0, message
             ) : (
               <>
                 <Link href="/login" className="hidden sm:block">
-                  <Button variant="ghost" size="sm">{t('signIn')}</Button>
+                  <Button variant="ghost" size="sm">Sign In</Button>
                 </Link>
                 <Link href="/register" className="hidden sm:block">
                   <Button size="sm">Sign Up</Button>
