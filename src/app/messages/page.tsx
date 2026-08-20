@@ -29,6 +29,7 @@ export default async function InboxPage() {
       user1: { select: { id: true, displayName: true, avatar: true } },
       user2: { select: { id: true, displayName: true, avatar: true } },
       claim: { include: { foundItem: { select: { title: true, slug: true } } } },
+      lostItem: { select: { title: true, slug: true } },
       messages: {
         orderBy: { createdAt: 'desc' },
         take: 1
