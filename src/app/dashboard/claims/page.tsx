@@ -45,7 +45,7 @@ export default async function ClaimsDashboardPage() {
           <ShieldCheck className="w-6 h-6" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold">Claims Management</h1>
+          <h1 className="text-xl font-bold">Claims Management</h1>
           <p className="text-sm text-[var(--text-secondary)]">Manage items you are claiming and review claims on items you found.</p>
         </div>
       </div>
@@ -53,7 +53,7 @@ export default async function ClaimsDashboardPage() {
       <div className="space-y-12">
         {/* Claims on Items I Found */}
         <section>
-          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+          <h2 className="text-base font-bold mb-4 flex items-center gap-2">
             <Inbox className="w-5 h-5 text-[var(--color-secondary-500)]" /> 
             Claims for Items You Found
           </h2>
@@ -69,7 +69,7 @@ export default async function ClaimsDashboardPage() {
 
         {/* Claims I Made */}
         <section>
-          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+          <h2 className="text-base font-bold mb-4 flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-[var(--color-primary-500)]" /> 
             Your Submitted Claims
           </h2>

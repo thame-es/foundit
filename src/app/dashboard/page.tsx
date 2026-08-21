@@ -47,7 +47,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Overview</h1>
+        <h1 className="text-xl font-bold mb-1">Overview</h1>
         <p className="text-[var(--text-secondary)]">Manage your listings, claims, and account activity.</p>
       </div>
 
@@ -58,8 +58,8 @@ export default async function DashboardPage() {
             <Search className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">Active Lost Items</p>
-            <p className="text-3xl font-bold">{lostCount}</p>
+            <p className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1">Active Lost Items</p>
+            <p className="text-2xl font-bold text-[var(--text-primary)]">{lostCount}</p>
           </div>
         </div>
 
@@ -69,8 +69,8 @@ export default async function DashboardPage() {
             <PackageSearch className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">Active Found Items</p>
-            <p className="text-3xl font-bold">{foundCount}</p>
+            <p className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1">Active Found Items</p>
+            <p className="text-2xl font-bold text-[var(--text-primary)]">{foundCount}</p>
           </div>
         </div>
 
@@ -80,8 +80,8 @@ export default async function DashboardPage() {
             <Clock className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">Pending Claims</p>
-            <p className="text-3xl font-bold">{pendingClaims}</p>
+            <p className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1">Pending Claims</p>
+            <p className="text-2xl font-bold text-[var(--text-primary)]">{pendingClaims}</p>
           </div>
         </div>
       </div>
@@ -89,28 +89,28 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quick Actions */}
         <div className="bg-[var(--bg-primary)] p-6 rounded-2xl border border-[var(--border-primary)] shadow-sm">
-          <h2 className="text-xl font-bold mb-6">Quick Actions</h2>
-          <div className="space-y-4">
-            <Link href="/report/lost" className="flex items-center justify-between p-4 rounded-xl border border-[var(--border-primary)] hover:border-[var(--color-primary-500)] hover:shadow-sm transition-all group">
+          <h2 className="text-base font-bold text-[var(--text-primary)] mb-4">Quick Actions</h2>
+          <div className="space-y-3">
+            <Link href="/report/lost" className="flex items-center justify-between p-3 rounded-xl border border-[var(--border-primary)] hover:border-[var(--color-primary-500)] hover:shadow-sm transition-all group">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[var(--bg-secondary)] flex items-center justify-center group-hover:bg-[var(--color-primary-50)] group-hover:text-[var(--color-primary-600)] transition-colors">
-                  <Search className="w-5 h-5" />
+                <div className="w-8 h-8 rounded-full bg-[var(--bg-secondary)] flex items-center justify-center group-hover:bg-[var(--color-primary-50)] group-hover:text-[var(--color-primary-600)] transition-colors">
+                  <Search className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="font-medium">Report Lost Item</p>
-                  <p className="text-sm text-[var(--text-secondary)]">Create a new listing for something you lost.</p>
+                  <p className="text-sm font-semibold">Report Lost Item</p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-0.5">Create a new listing for something you lost.</p>
                 </div>
               </div>
             </Link>
             
-            <Link href="/report/found" className="flex items-center justify-between p-4 rounded-xl border border-[var(--border-primary)] hover:border-[var(--color-primary-500)] hover:shadow-sm transition-all group">
+            <Link href="/report/found" className="flex items-center justify-between p-3 rounded-xl border border-[var(--border-primary)] hover:border-[var(--color-primary-500)] hover:shadow-sm transition-all group">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[var(--bg-secondary)] flex items-center justify-center group-hover:bg-[var(--color-primary-50)] group-hover:text-[var(--color-primary-600)] transition-colors">
-                  <PackageSearch className="w-5 h-5" />
+                <div className="w-8 h-8 rounded-full bg-[var(--bg-secondary)] flex items-center justify-center group-hover:bg-[var(--color-primary-50)] group-hover:text-[var(--color-primary-600)] transition-colors">
+                  <PackageSearch className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="font-medium">Report Found Item</p>
-                  <p className="text-sm text-[var(--text-secondary)]">Help someone get their item back.</p>
+                  <p className="text-sm font-semibold">Report Found Item</p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-0.5">Help someone get their item back.</p>
                 </div>
               </div>
             </Link>
@@ -119,7 +119,7 @@ export default async function DashboardPage() {
 
         {/* Recent Activity placeholder */}
         <div className="bg-[var(--bg-primary)] p-6 rounded-2xl border border-[var(--border-primary)] shadow-sm">
-          <h2 className="text-xl font-bold mb-6">Your Active Listings</h2>
+          <h2 className="text-base font-bold text-[var(--text-primary)] mb-4">Your Active Listings</h2>
           
           {allListings.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-[200px] text-center border border-dashed border-[var(--border-primary)] rounded-xl bg-[var(--bg-secondary)]">
@@ -143,10 +143,10 @@ export default async function DashboardPage() {
                         {formatDistanceToNow(item.createdAt, { addSuffix: true })}
                       </span>
                     </div>
-                    <Link href={`/${item.itemType}/${item.slug}`} className="font-semibold text-[var(--text-primary)] hover:text-[var(--color-primary-600)] transition-colors line-clamp-1 block">
+                    <Link href={`/${item.itemType}/${item.slug}`} className="text-sm font-semibold text-[var(--text-primary)] hover:text-[var(--color-primary-600)] transition-colors line-clamp-1 block">
                       {item.title}
                     </Link>
-                    <p className="text-sm text-[var(--text-secondary)] line-clamp-1 mt-0.5">
+                    <p className="text-xs text-[var(--text-secondary)] line-clamp-1 mt-0.5">
                       {item.publicDescription}
                     </p>
                   </div>

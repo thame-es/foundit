@@ -11,6 +11,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     { name: 'My Claims', href: '/dashboard/claims', icon: PackageSearch },
     { name: 'Messages', href: '/dashboard/messages', icon: Mail },
     { name: 'Notifications', href: '/dashboard/notifications', icon: Bell },
+    { name: 'Saved Searches', href: '/dashboard/saved-searches', icon: Search },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ];
 
@@ -33,8 +34,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 bg-[var(--bg-primary)] border-r border-[var(--border-primary)] p-6 min-h-[calc(100vh-64px)]">
         <div className="mb-8">
-          <h2 className="text-xl font-bold truncate">Welcome back,</h2>
-          <p className="text-[var(--text-secondary)] truncate">{user.displayName}</p>
+          <h2 className="text-lg font-bold">Welcome back,</h2>
+          <p className="text-sm text-[var(--text-secondary)] break-words">{user.displayName}</p>
         </div>
         
         <nav className="flex-1 space-y-1">

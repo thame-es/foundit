@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { LocationSearch } from '@/components/maps/LocationSearch';
-import { Search, Filter, X, MapPin } from 'lucide-react';
+import { Search, Filter, X, MapPin, Bell } from 'lucide-react';
 import { defaultCategories } from '@/lib/config';
+import { createSavedSearch } from '@/actions/savedSearches';
 
 export function SearchClientFilters() {
   const router = useRouter();
@@ -84,6 +85,45 @@ export function SearchClientFilters() {
     router.push(`/search?${params.toString()}`);
   };
 
+  const handleSaveSearch = async () => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    // Generate a default name
+    let nameParts = [];
+    if (query) nameParts.push(`"${query}"`);
+    if (category) nameParts.push(defaultCategories.find(c => c.slug === category)?.name || category);
+    if (locationName) nameParts.push(`near ${locationName}`);
+    
+    const searchName = nameParts.length > 0 ? `Alert: ${nameParts.join(' ')}` : `Saved Search (${new Date().toLocaleDateString()})`;
+
+    const input = {
+      name: searchName,
+      query: query || undefined,
+      type: (type as any) === 'all' ? 'all' : (type as any) || 'all',
+      categoryId: category || undefined,
+      brand: brand || undefined,
+      colour: colour || undefined,
+      latitude: lat ? parseFloat(lat) : undefined,
+      longitude: lng ? parseFloat(lng) : undefined,
+      locationName: locationName || undefined,
+      radius: radius ? parseFloat(radius) : undefined,
+      datePreference: date !== 'any' ? date : undefined,
+      alertsEnabled: true,
+    };
+
+    const result = await createSavedSearch(input);
+    if (!result.success) {
+      if (result.error === 'Unauthorized') {
+        const callbackUrl = `/search?${params.toString()}`;
+        router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } else {
+      alert('Search saved successfully! You will be notified of new matches.');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Search Bar */}
@@ -149,6 +189,12 @@ export function SearchClientFilters() {
           <button onClick={clearFilters} className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] underline ml-2">
             Clear All
           </button>
+          
+          <div className="ml-auto flex items-center">
+            <Button variant="outline" size="sm" onClick={handleSaveSearch} className="h-7 text-xs px-3 rounded-full border-[var(--color-primary-200)] text-[var(--color-primary-700)] bg-[var(--color-primary-50)] hover:bg-[var(--color-primary-100)]">
+              <Bell className="w-3 h-3 mr-1" /> Save Search & Alert
+            </Button>
+          </div>
         </div>
       )}
 
@@ -325,6 +371,73 @@ export function SidebarFilters() {
       <div className="p-4 border-t border-[var(--border-primary)] flex-shrink-0 bg-[var(--bg-primary)] z-10">
         <Button className="w-full h-10 text-sm font-medium" onClick={applyFilters}>
           Apply Filters
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export function EmptySearchState() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const handleSaveSearch = async () => {
+    const params = new URLSearchParams(searchParams.toString());
+    const query = params.get('q');
+    const category = params.get('category');
+    const locationName = params.get('locName');
+
+    let nameParts = [];
+    if (query) nameParts.push(`"${query}"`);
+    if (category) nameParts.push(defaultCategories.find(c => c.slug === category)?.name || category);
+    if (locationName) nameParts.push(`near ${locationName}`);
+    
+    const searchName = nameParts.length > 0 ? `Alert: ${nameParts.join(' ')}` : `Saved Search (${new Date().toLocaleDateString()})`;
+
+    const input = {
+      name: searchName,
+      query: query || undefined,
+      type: (params.get('type') as any) === 'all' ? 'all' : (params.get('type') as any) || 'all',
+      categoryId: category || undefined,
+      brand: params.get('brand') || undefined,
+      colour: params.get('colour') || undefined,
+      latitude: params.get('lat') ? parseFloat(params.get('lat') as string) : undefined,
+      longitude: params.get('lng') ? parseFloat(params.get('lng') as string) : undefined,
+      locationName: locationName || undefined,
+      radius: params.get('radius') ? parseFloat(params.get('radius') as string) : undefined,
+      datePreference: params.get('date') !== 'any' ? (params.get('date') as string) : undefined,
+      alertsEnabled: true,
+    };
+
+    const result = await createSavedSearch(input);
+    if (!result.success) {
+      if (result.error === 'Unauthorized') {
+        const callbackUrl = `/search?${params.toString()}`;
+        router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } else {
+      alert('Alert created! You will be notified of new matches.');
+    }
+  };
+
+  return (
+    <div className="p-16 text-center bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-primary)] shadow-sm">
+      <div className="w-16 h-16 bg-[var(--bg-secondary)] rounded-full flex items-center justify-center mx-auto mb-4">
+        <Bell className="w-8 h-8 text-[var(--text-tertiary)]" />
+      </div>
+      <h3 className="text-xl font-bold mb-2">No items found</h3>
+      <p className="text-[var(--text-secondary)] mb-6 max-w-md mx-auto">
+        We couldn't find any items matching your current filters. We'll notify you when a new matching listing is reported.
+      </p>
+      
+      <div className="flex flex-col sm:flex-row justify-center gap-3">
+        <Button onClick={handleSaveSearch} className="px-8 shadow-md">
+          Create an alert
+        </Button>
+        <Button variant="outline" onClick={() => router.push('/report/lost')}>
+          Report my lost item
         </Button>
       </div>
     </div>

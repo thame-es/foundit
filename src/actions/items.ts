@@ -8,6 +8,7 @@ import { db } from '@/lib/db';
 import { getAuthenticatedUser, requireLostItemOwnership, requireFoundItemOwnership, requireAdmin } from '@/lib/auth/guards';
 import { createLostItemSchema, createFoundItemSchema, updateLostItemSchema, updateFoundItemSchema, CreateLostItemInput, CreateFoundItemInput, UpdateLostItemInput, UpdateFoundItemInput } from '@/lib/validations/items';
 import { enforceRateLimit } from '@/lib/rate-limit';
+import { checkSavedSearchesForMatch } from '@/actions/alerts';
 import { appConfig } from '@/lib/config';
 import { logger } from '@/lib/logger';
 import { createSlug, generateId } from '@/lib/utils';
@@ -86,6 +87,11 @@ export async function createLostItem(input: CreateLostItemInput): Promise<Action
     logger.info('Lost item created', { itemId: item.id, userId: user.userId });
     revalidatePath('/lost');
     revalidatePath('/dashboard/lost-items');
+
+    // Trigger alert checking in the background (fire and forget)
+    checkSavedSearchesForMatch('lost', item).catch(err => {
+      console.error('Background alert check failed for lost item', err);
+    });
     
     return { success: true, data: { slug: item.slug } };
   } catch (error) {
@@ -275,6 +281,11 @@ export async function createFoundItem(input: CreateFoundItemInput): Promise<Acti
     revalidatePath('/found');
     revalidatePath('/dashboard/found-items');
     
+    // Trigger alert checking in the background (fire and forget)
+    checkSavedSearchesForMatch('found', item).catch(err => {
+      console.error('Background alert check failed for found item', err);
+    });
+
     return { success: true, data: { slug: item.slug } };
   } catch (error) {
     logger.error('Create found item error', { error: String(error) });

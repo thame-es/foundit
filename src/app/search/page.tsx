@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import { Search, MapPin, Calendar, Image as ImageIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { SearchClientFilters, SidebarFilters } from '@/components/search/SearchFilters';
+import { SearchClientFilters, SidebarFilters, EmptySearchState } from '@/components/search/SearchFilters';
 
 export const metadata: Metadata = {
   title: 'Search Lost & Found Items | FoundIt',
@@ -67,16 +67,7 @@ export default async function SearchPage({
                 {error || 'Failed to load search results'}
               </div>
             ) : results && results.length === 0 ? (
-              <div className="p-16 text-center bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-primary)]">
-                <div className="w-16 h-16 bg-[var(--bg-secondary)] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Search className="w-8 h-8 text-[var(--text-tertiary)]" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">No items found</h3>
-                <p className="text-[var(--text-secondary)] mb-6">Try adjusting your search terms or filters.</p>
-                <Link href="/search">
-                  <Button variant="outline">Clear Filters</Button>
-                </Link>
-              </div>
+              <EmptySearchState />
             ) : (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

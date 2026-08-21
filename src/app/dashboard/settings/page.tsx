@@ -12,7 +12,7 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-8 max-w-4xl">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Settings</h1>
+        <h1 className="text-xl font-bold mb-2">Settings</h1>
         <p className="text-[var(--text-secondary)]">Manage your account preferences and personal information.</p>
       </div>
 
@@ -25,7 +25,7 @@ export default async function SettingsPage() {
               <User className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Profile Information</h2>
+              <h2 className="text-base font-bold">Profile Information</h2>
               <p className="text-sm text-[var(--text-secondary)]">Update your display name and email.</p>
             </div>
           </div>
@@ -53,7 +53,7 @@ export default async function SettingsPage() {
               <Shield className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Security</h2>
+              <h2 className="text-base font-bold">Security</h2>
               <p className="text-sm text-[var(--text-secondary)]">Manage your password and security preferences.</p>
             </div>
           </div>

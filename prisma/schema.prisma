@@ -45,6 +45,7 @@ model User {
   claims             Claim[]           @relation("ClaimantClaims")
   sentMessages       Message[]         @relation("SentMessages")
   notifications      Notification[]
+  savedSearches      SavedSearch[]
   savedItems         SavedItem[]
   reports            Report[]          @relation("ReportedBy")
   reportsAgainst     Report[]          @relation("ReportedUser")
@@ -349,6 +350,33 @@ model Notification {
   @@index([userId])
   @@index([userId, readAt])
   @@index([createdAt])
+}
+
+// ─── Saved Searches ──────────────────────────
+
+model SavedSearch {
+  id             String   @id @default(cuid())
+  userId         String
+  name           String
+  query          String?
+  type           String   @default("all") // lost, found, all
+  categoryId     String?
+  brand          String?
+  colour         String?
+  latitude       Float?
+  longitude      Float?
+  locationName   String?
+  radius         Float?
+  datePreference String   @default("any")
+  alertsEnabled  Boolean  @default(true)
+  lastCheckedAt  DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([alertsEnabled])
 }
 
 // ─── Saved Items ─────────────────────────────

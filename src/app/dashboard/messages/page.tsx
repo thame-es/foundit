@@ -56,7 +56,7 @@ export default async function MessagesPage() {
             <div className="w-20 h-20 rounded-full bg-[var(--bg-secondary)] flex items-center justify-center mb-6">
               <MessageSquare className="w-10 h-10 text-[var(--text-tertiary)]" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">No Messages Yet</h2>
+            <h2 className="text-xl font-bold mb-2">No Messages Yet</h2>
             <p className="text-[var(--text-secondary)] max-w-md mx-auto">
               When you claim an item or someone claims an item you've found, your secure conversations will appear here.
             </p>

@@ -4,6 +4,7 @@ import { logger } from '@/lib/logger';
 import { appConfig } from '@/lib/config';
 import WelcomeEmailTemplate from '@/emails/WelcomeEmail';
 import MessageNotificationEmailTemplate from '@/emails/MessageNotificationEmail';
+import SearchAlertEmailTemplate from '@/emails/SearchAlertEmail';
 
 // Create a transporter using environment variables.
 // If using Gmail, SMTP_HOST="smtp.gmail.com", SMTP_PORT=465, SMTP_SECURE=true
@@ -88,3 +89,46 @@ export async function sendNewMessageNotification(
     logger.error('Failed to send message notification email', { to, error });
   }
 }
+
+/**
+ * Sends an email notification when a new item matches a saved search.
+ */
+export async function sendSearchAlertEmail(
+  to: string, 
+  displayName: string,
+  searchName: string,
+  itemTitle: string,
+  itemUrl: string,
+  itemLocation?: string
+) {
+  if (!process.env.SMTP_USER) {
+    logger.warn('Skipping sendSearchAlertEmail: SMTP not configured');
+    return;
+  }
+
+  const subject = `New Match: ${itemTitle}`;
+  
+  const html = await render(
+    SearchAlertEmailTemplate({
+      displayName,
+      searchName,
+      itemTitle,
+      itemUrl,
+      itemLocation,
+      appUrl: process.env.NEXT_PUBLIC_APP_URL || '',
+    })
+  );
+
+  try {
+    await transporter.sendMail({
+      from: defaultFrom,
+      to,
+      subject,
+      html,
+    });
+    logger.info(`Search alert email sent to ${to}`);
+  } catch (error) {
+    logger.error('Failed to send search alert email', { to, error });
+  }
+}
+

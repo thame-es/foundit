@@ -52,7 +52,7 @@ export default async function NotificationsPage() {
           <Bell className="w-6 h-6" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold">Notifications</h1>
+          <h1 className="text-xl font-bold">Notifications</h1>
           <p className="text-sm text-[var(--text-secondary)]">Stay updated on your claims and messages.</p>
         </div>
       </div>
