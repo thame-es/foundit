@@ -4,6 +4,7 @@ import path from 'path';
 import { appConfig } from '@/lib/config';
 import { getSession } from '@/lib/auth/session';
 import { db } from '@/lib/db';
+import { supabaseStorage } from '@/lib/services/storage';
 
 export async function GET(
   request: NextRequest,
@@ -65,6 +66,28 @@ export async function GET(
     }
 
     // 3. Serve the file
+    // 3a. Supabase Redirect
+    if (supabaseStorage) {
+      const filePathInBucket = `${type}/${filename}`;
+      if (imageRecord.isPublic) {
+        const { data } = supabaseStorage.storage
+          .from(appConfig.supabase.storageBucket)
+          .getPublicUrl(filePathInBucket);
+        return NextResponse.redirect(data.publicUrl);
+      } else {
+        const { data, error } = await supabaseStorage.storage
+          .from(appConfig.supabase.storageBucket)
+          .createSignedUrl(filePathInBucket, 3600); // 1 hour expiry
+        
+        if (error || !data) {
+          console.error('Signed URL Error:', error);
+          return new NextResponse('Failed to generate secure URL', { status: 500 });
+        }
+        return NextResponse.redirect(data.signedUrl);
+      }
+    }
+
+    // 3b. Local File System Fallback
     const filePath = path.join(/*turbopackIgnore: true*/ process.cwd(), appConfig.upload.directory, type, filename);
     
     try {

@@ -25,13 +25,20 @@ export const appConfig = {
     currency: 'EUR',
   },
 
-  // Upload Limits
+  // Upload config
   upload: {
+    directory: process.env.UPLOAD_DIRECTORY || '../data/uploads',
     maxSizeMB: parseInt(process.env.MAX_UPLOAD_SIZE_MB || '10', 10),
     maxFilesPerItem: parseInt(process.env.MAX_FILES_PER_ITEM || '6', 10),
     allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'] as const,
     allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp'] as const,
-    directory: process.env.UPLOAD_DIRECTORY || '../data/uploads',
+  },
+
+  // Supabase Storage Config
+  supabase: {
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+    storageBucket: 'findit-images',
   },
 
   // Maps
