@@ -4,6 +4,8 @@ import { db } from '@/lib/db';
 import { searchItems, SearchParams } from '@/actions/search';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
+import { appConfig } from '@/lib/config';
 import Link from 'next/link';
 import { Search, MapPin, Calendar, Image as ImageIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -80,11 +82,11 @@ export default async function SearchPage({
                       {/* Image */}
                       <div className="relative aspect-video bg-[var(--bg-secondary)] flex items-center justify-center overflow-hidden">
                         {item.images && item.images.length > 0 ? (
-                          <img 
+                          <ImageWithFallback 
                             src={`${appConfig.url}/api/uploads/medium/${item.images[0].filename}`} 
+                            fallbackSrc={`${appConfig.url}/images/social-fallback.png`}
                             alt={item.title} 
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            onError={(e) => { e.currentTarget.src = `${appConfig.url}/images/social-fallback.png`; }}
                           />
                         ) : (
                           <ImageIcon className="w-10 h-10 text-[var(--text-tertiary)] opacity-50" />
