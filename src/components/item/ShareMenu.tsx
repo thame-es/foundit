@@ -70,7 +70,7 @@ export function ShareMenu({ url, title, description, itemId, itemSlug, itemType 
       </Button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 bg-[var(--bg-primary)] rounded-xl shadow-xl border border-[var(--border-primary)] p-4 z-50 flex flex-col gap-4 animate-in fade-in slide-in-from-top-2">
+        <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-[calc(100vw-3rem)] max-w-sm sm:w-72 bg-[var(--bg-primary)] rounded-xl shadow-xl border border-[var(--border-primary)] p-4 z-50 flex flex-col gap-4 animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-[var(--text-primary)]">Share Listing</h3>
             <button onClick={() => setIsOpen(false)} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">

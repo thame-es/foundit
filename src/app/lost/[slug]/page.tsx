@@ -132,7 +132,7 @@ export default async function LostItemPage({ params }: { params: Promise<{ slug:
                 {item.rewardOffered && <Badge variant="warning" size="md">Reward Offered</Badge>}
               </div>
               
-              <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-4">{item.title}</h1>
+              <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-4 break-words">{item.title}</h1>
               
               <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-[var(--text-secondary)] mb-6">
                 <div className="flex items-center gap-2">
@@ -153,8 +153,8 @@ export default async function LostItemPage({ params }: { params: Promise<{ slug:
                 )}
               </div>
 
-              <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none">
-                <p className="whitespace-pre-wrap text-[var(--text-secondary)]">{item.publicDescription}</p>
+              <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none w-full overflow-hidden">
+                <p className="whitespace-pre-wrap text-[var(--text-secondary)] break-words w-full">{item.publicDescription}</p>
               </div>
 
               {/* Attributes Grid */}
@@ -190,11 +190,12 @@ export default async function LostItemPage({ params }: { params: Promise<{ slug:
                 <h3 className="text-lg font-bold mb-4">Photos</h3>
                 <div className="grid grid-cols-2 gap-4">
                   {item.images.map((img) => (
-                    <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border border-[var(--border-primary)]">
+                    <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border border-[var(--border-primary)] bg-slate-100 dark:bg-slate-800">
                       <img 
-                        src={`/api/uploads/medium/${img.filename}`} 
+                        src={`${appConfig.url}/api/uploads/medium/${img.filename}`} 
                         alt={item.title} 
                         className="w-full h-full object-cover"
+                        onError={(e) => { e.currentTarget.src = `${appConfig.url}/images/social-fallback.png`; }}
                       />
                     </div>
                   ))}
