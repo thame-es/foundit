@@ -32,7 +32,6 @@ export const metadata: Metadata = {
   description: 'The secure and modern lost and found platform. Post lost items, find what you\'re looking for, and safely return items to their owners.',
   keywords: ['lost and found', 'lost property', 'find items', 'lost keys', 'lost wallet', 'secure return'],
   authors: [{ name: appConfig.name }],
-  manifest: '/manifest.json',
 };
 
 export default async function RootLayout({

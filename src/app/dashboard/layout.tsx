@@ -2,9 +2,16 @@ import { requireAuth } from '@/lib/auth/guards';
 import Link from 'next/link';
 import { PackageSearch, Mail, Settings, LayoutDashboard, Search, Bell } from 'lucide-react';
 import { ReactNode } from 'react';
+import { db } from '@/lib/db';
+import { VerificationBanner } from '@/components/dashboard/VerificationBanner';
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const user = await requireAuth();
+  const session = await requireAuth();
+  
+  const user = await db.user.findUnique({
+    where: { id: session.userId },
+    select: { displayName: true, emailVerified: true }
+  });
 
   const navItems = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
@@ -35,7 +42,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       <aside className="hidden md:flex flex-col w-64 bg-[var(--bg-primary)] border-r border-[var(--border-primary)] p-6 min-h-[calc(100vh-64px)]">
         <div className="mb-8">
           <h2 className="text-lg font-bold">Welcome back,</h2>
-          <p className="text-sm text-[var(--text-secondary)] break-words">{user.displayName}</p>
+          <p className="text-sm text-[var(--text-secondary)] break-words">{user?.displayName}</p>
         </div>
         
         <nav className="flex-1 space-y-1">
@@ -53,8 +60,11 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-4 md:p-8">
-        {children}
+      <main className="flex-1 flex flex-col">
+        {user && !user.emailVerified && <VerificationBanner />}
+        <div className="p-4 md:p-8 flex-1">
+          {children}
+        </div>
       </main>
     </div>
   );

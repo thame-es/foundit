@@ -11,9 +11,6 @@ export const metadata: Metadata = {
 export default async function ReportFoundPage() {
   const session = await getSession();
   
-  if (!session.userId) {
-    redirect('/login?redirect=/report/found');
-  }
 
   return (
     <div className="min-h-screen bg-[var(--bg-secondary)] py-12">
@@ -25,7 +22,7 @@ export default async function ReportFoundPage() {
           </p>
         </div>
 
-        <ReportForm type="found" />
+        <ReportForm type="found" userId={session.userId || 'guest'} />
       </div>
     </div>
   );

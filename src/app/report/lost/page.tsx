@@ -11,10 +11,6 @@ export const metadata: Metadata = {
 export default async function ReportLostPage() {
   const session = await getSession();
   
-  // Extra safety check in case middleware misses
-  if (!session.userId) {
-    redirect('/login?redirect=/report/lost');
-  }
 
   return (
     <div className="min-h-screen bg-[var(--bg-secondary)] py-12">
@@ -26,7 +22,7 @@ export default async function ReportLostPage() {
           </p>
         </div>
 
-        <ReportForm type="lost" />
+        <ReportForm type="lost" userId={session.userId || 'guest'} />
       </div>
     </div>
   );

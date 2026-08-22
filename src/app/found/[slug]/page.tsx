@@ -6,18 +6,53 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { DynamicLocationPicker } from '@/components/maps';
 import { ItemActions } from '@/components/item/ItemActions';
+import { UserTrustProfile, TrustExplanation } from '@/components/item/UserTrustProfile';
+import { ReportModalToggle } from '@/components/safety/ReportModalToggle';
 import { getSession } from '@/lib/auth/session';
 import { MapPin, Calendar, Clock, ShieldCheck, MessageSquare, Edit, HelpCircle } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
+import { appConfig } from '@/lib/config';
+import { ShareMenu } from '@/components/item/ShareMenu';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
-  const item = await db.foundItem.findUnique({ where: { slug: resolvedParams.slug } });
+  const item = await db.foundItem.findUnique({ where: { slug: resolvedParams.slug }, include: { images: true } });
   if (!item) return { title: 'Not Found' };
   
+  const title = `Found: ${item.title}`;
+  const description = item.publicDescription.substring(0, 160);
+  const canonicalUrl = `${appConfig.url}/found/${item.slug}`;
+  const imageUrl = (item.images && item.images.length > 0 && item.images[0].filename) 
+    ? `${appConfig.url}/api/uploads/medium/${item.images[0].filename}` 
+    : `${appConfig.url}/images/social-fallback.png`;
+  
   return {
-    title: `Found: ${item.title}`,
-    description: item.publicDescription.substring(0, 160),
+    title,
+    description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl,
+      siteName: appConfig.name,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: item.title,
+        }
+      ],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [imageUrl],
+    }
   };
 }
 
@@ -29,7 +64,7 @@ export default async function FoundItemPage({ params }: { params: Promise<{ slug
     include: {
       category: true,
       user: {
-        select: { displayName: true, createdAt: true }
+        select: { id: true, displayName: true, createdAt: true, emailVerified: true, businessAccount: true }
       },
       images: {
         orderBy: { order: 'asc' }
@@ -41,6 +76,16 @@ export default async function FoundItemPage({ params }: { params: Promise<{ slug
 
   const isOwner = session.userId === item.userId;
   const isAdmin = session.role === 'admin';
+
+  const successfulReturns = await db.claim.count({
+    where: {
+      status: 'returned',
+      OR: [
+        { claimantId: item.userId },
+        { foundItem: { userId: item.userId } }
+      ]
+    }
+  });
 
   const dateStr = item.dateApproximate 
     ? `Around ${format(item.dateFound, 'MMMM do, yyyy')}`
@@ -58,9 +103,19 @@ export default async function FoundItemPage({ params }: { params: Promise<{ slug
             <span className="text-[var(--text-secondary)]">{item.category.name}</span>
           </div>
 
-          {(isOwner || isAdmin) && (
-            <ItemActions itemId={item.id} itemType="found" itemSlug={item.slug} />
-          )}
+          <div className="flex items-center gap-3">
+            <ShareMenu 
+              url={`${appConfig.url}/found/${item.slug}`}
+              title={`Found: ${item.title}`}
+              description={item.publicDescription}
+              itemId={item.id}
+              itemSlug={item.slug}
+              itemType="found"
+            />
+            {(isOwner || isAdmin) && (
+              <ItemActions itemId={item.id} itemType="found" itemSlug={item.slug} />
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -174,6 +229,12 @@ export default async function FoundItemPage({ params }: { params: Promise<{ slug
                     <Button variant="outline" fullWidth size="sm">Manage Claims</Button>
                   </Link>
                 </div>
+              ) : item.status === 'returned' ? (
+                <div className="text-center p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                  <ShieldCheck className="w-8 h-8 mx-auto mb-2 text-emerald-600" />
+                  <p className="font-semibold text-emerald-800">Item Returned</p>
+                  <p className="text-sm text-emerald-700 mt-1">This item has been successfully returned to its rightful owner.</p>
+                </div>
               ) : (
                 <>
                   <h3 className="text-lg font-bold mb-2">Is this yours?</h3>
@@ -186,29 +247,26 @@ export default async function FoundItemPage({ params }: { params: Promise<{ slug
                   <Link href={`/how-it-works#claiming`} className="block mt-4 text-center text-sm text-[var(--text-tertiary)] hover:text-[var(--text-primary)] flex items-center justify-center gap-1">
                     <HelpCircle className="w-3 h-3" /> How claiming works
                   </Link>
+                  
+                  <div className="mt-4">
+                    <TrustExplanation />
+                  </div>
                 </>
               )}
             </div>
 
             {/* Reporter Info */}
-            <div className="bg-[var(--bg-primary)] rounded-2xl p-6 shadow-sm border border-[var(--border-primary)]">
-              <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-4">Found By</h3>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--color-secondary-400)] to-[var(--color-secondary-600)] flex items-center justify-center text-white font-bold text-lg">
-                  {item.user.displayName.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <p className="font-semibold">{item.user.displayName}</p>
-                  <p className="text-xs text-[var(--text-tertiary)]">Good Samaritan</p>
-                </div>
-              </div>
-            </div>
+            <UserTrustProfile user={item.user as any} successfulReturns={successfulReturns} />
 
             {/* Meta */}
             <div className="text-xs text-[var(--text-tertiary)] text-center">
               Listing ID: {item.id.split('-')[0]}<br />
               Posted {formatDistanceToNow(item.createdAt, { addSuffix: true })}
             </div>
+
+            {!isOwner && session.userId && (
+              <ReportModalToggle targetType="item" targetId={item.id} targetName={item.title} variant="text" />
+            )}
           </div>
         </div>
       </div>

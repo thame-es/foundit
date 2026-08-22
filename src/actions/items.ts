@@ -28,6 +28,11 @@ export async function createLostItem(input: CreateLostItemInput): Promise<Action
     const user = await getAuthenticatedUser();
     enforceRateLimit('general', user.userId, appConfig.rateLimit.general.max, appConfig.rateLimit.general.windowMs);
 
+    const dbUser = await db.user.findUnique({ where: { id: user.userId }, select: { emailVerified: true } });
+    if (!dbUser?.emailVerified) {
+      return { success: false, error: 'You must verify your email address to post a listing.' };
+    }
+
     const result = createLostItemSchema.safeParse(input);
     if (!result.success) {
       return { success: false, fieldErrors: result.error.flatten().fieldErrors };
@@ -226,6 +231,11 @@ export async function createFoundItem(input: CreateFoundItemInput): Promise<Acti
   try {
     const user = await getAuthenticatedUser();
     enforceRateLimit('general', user.userId, appConfig.rateLimit.general.max, appConfig.rateLimit.general.windowMs);
+
+    const dbUser = await db.user.findUnique({ where: { id: user.userId }, select: { emailVerified: true } });
+    if (!dbUser?.emailVerified) {
+      return { success: false, error: 'You must verify your email address to post a listing.' };
+    }
 
     const result = createFoundItemSchema.safeParse(input);
     if (!result.success) {

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 import { ArrowLeft, Send, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
+import { ReportModalToggle } from '@/components/safety/ReportModalToggle';
 
 // Types simplified for UI
 type Message = {
@@ -127,7 +128,10 @@ export function ChatUI({ conversation, currentUserId, otherUser }: ChatUIProps) 
               {otherUser.displayName.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h2 className="font-bold text-[var(--text-primary)]">{otherUser.displayName}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="font-bold text-[var(--text-primary)]">{otherUser.displayName}</h2>
+                <ReportModalToggle targetType="user" targetId={otherUser.id} targetName={otherUser.displayName} variant="text" />
+              </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-[var(--text-tertiary)]">Re:</span>
                 <Link href={conversation.claim ? `/found/${conversation.claim.foundItem.slug}` : `/lost/${conversation.lostItem?.slug}`} className="text-xs font-medium text-[var(--color-primary-600)] hover:underline truncate max-w-[200px] sm:max-w-[300px]">

@@ -15,7 +15,7 @@ import { enforceRateLimit } from '@/lib/rate-limit';
 import { appConfig } from '@/lib/config';
 import { logger } from '@/lib/logger';
 import { generateToken } from '@/lib/utils';
-import { sendWelcomeEmail } from '@/lib/services/email';
+import { sendWelcomeEmail, sendVerificationEmail } from '@/lib/services/email';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import crypto from 'crypto';
@@ -72,13 +72,27 @@ export async function register(formData: FormData): Promise<ActionResult> {
       },
     });
 
+    // Create verification token
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    await db.verificationToken.create({
+      data: {
+        userId: user.id,
+        tokenHash,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+      }
+    });
+
     // Create session
     await createSession(user);
 
     logger.info('User registered', { userId: user.id, email });
     
-    // Trigger welcome email (must await in Vercel serverless functions)
-    await sendWelcomeEmail(email, displayName).catch(console.error);
+    // Trigger welcome and verification emails (must await in Vercel serverless functions)
+    await Promise.all([
+      sendWelcomeEmail(email, displayName).catch(console.error),
+      sendVerificationEmail(email, displayName, token).catch(console.error)
+    ]);
     
     return { success: true };
   } catch (error) {

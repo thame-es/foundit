@@ -310,3 +310,15 @@ a:hover {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--text-tertiary);
 }
+
+@media print {
+  @page { margin: 0; size: A4 portrait; }
+  body { 
+    background-color: white !important; 
+    -webkit-print-color-adjust: exact; 
+    print-color-adjust: exact; 
+  }
+  header, footer, [role="region"][aria-label="Notifications (F8)"] { 
+    display: none !important; 
+  }
+}

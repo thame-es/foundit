@@ -32,7 +32,13 @@ export async function searchItems(params: SearchParams) {
   const pageSize = 50;
   const skip = (page - 1) * pageSize;
 
-  const baseFilter: any = { status };
+  const baseFilter: any = {};
+  if (status && status !== 'all') {
+    baseFilter.status = status;
+  } else {
+    // Hide completed listings from generic searches
+    baseFilter.status = { notIn: ['recovered', 'returned', 'hidden', 'expired'] };
+  }
   
   // 1. Text Search
   if (query) {

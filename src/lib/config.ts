@@ -141,7 +141,7 @@ export const claimTransitions: Record<ClaimState, ClaimState[]> = {
   [claimStates.SUBMITTED]: [claimStates.UNDER_REVIEW, claimStates.REJECTED, claimStates.CANCELLED],
   [claimStates.UNDER_REVIEW]: [claimStates.ACCEPTED, claimStates.REJECTED, claimStates.MORE_INFO_REQUESTED, claimStates.DISPUTED],
   [claimStates.MORE_INFO_REQUESTED]: [claimStates.UNDER_REVIEW, claimStates.CANCELLED],
-  [claimStates.ACCEPTED]: [claimStates.PAYMENT_PENDING, claimStates.VERIFIED, claimStates.DISPUTED],
+  [claimStates.ACCEPTED]: [claimStates.COLLECTION_ARRANGED, claimStates.DISPUTED],
   [claimStates.REJECTED]: [claimStates.DISPUTED],
   [claimStates.PAYMENT_PENDING]: [claimStates.VERIFIED, claimStates.CANCELLED],
   [claimStates.VERIFIED]: [claimStates.COLLECTION_ARRANGED],

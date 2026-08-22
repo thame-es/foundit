@@ -49,3 +49,24 @@ export function getBoundingBox(lat: number, lng: number, radiusKm: number): Boun
     maxLng: lng + lngDelta,
   };
 }
+
+/**
+ * Reverse geocodes coordinates to a human-readable address using Nominatim (OpenStreetMap).
+ * Returns the display_name or null on failure.
+ */
+export async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
+      headers: {
+        'User-Agent': 'FindBack App (Educational)',
+        'Accept-Language': 'en'
+      },
+      next: { revalidate: 86400 } // cache for 24h to avoid hitting rate limits for the same location
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.display_name || null;
+  } catch (e) {
+    return null;
+  }
+}

@@ -40,6 +40,7 @@ model User {
 
   sessions           Session[]
   passwordResetTokens PasswordResetToken[]
+  verificationTokens VerificationToken[]
   lostItems          LostItem[]
   foundItems         FoundItem[]
   claims             Claim[]           @relation("ClaimantClaims")
@@ -81,6 +82,19 @@ model PasswordResetToken {
   tokenHash String   @unique
   expiresAt DateTime
   usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId])
+}
+
+model VerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -261,6 +275,8 @@ model Claim {
   matchScore    Float?
   reviewNotes   String?   // Finder's internal notes
   adminNotes    String?   // Admin notes for disputes
+  returnConfirmedByFinder Boolean @default(false)
+  returnConfirmedByClaimant Boolean @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -493,6 +509,20 @@ model AuditLog {
 
   @@index([userId])
   @@index([action])
+  @@index([createdAt])
+}
+
+// ─── Analytics ───────────────────────────────
+
+model ShareEvent {
+  id         String   @id @default(cuid())
+  actionType String   // e.g., 'copy', 'whatsapp', 'native', 'email'
+  itemType   String   // 'lost', 'found'
+  itemId     String
+  createdAt  DateTime @default(now())
+
+  @@index([actionType])
+  @@index([itemType, itemId])
   @@index([createdAt])
 }
 

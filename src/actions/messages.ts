@@ -22,6 +22,11 @@ export async function sendMessage(formData: FormData) {
     const user = await getAuthenticatedUser();
     enforceRateLimit('general', user.userId, 60, 60 * 1000); // 60 msgs per minute
 
+    const dbUser = await db.user.findUnique({ where: { id: user.userId }, select: { emailVerified: true } });
+    if (!dbUser?.emailVerified) {
+      return { success: false, error: 'You must verify your email address to send messages.' };
+    }
+
     const conversationId = formData.get('conversationId') as string | null;
     const claimId = formData.get('claimId') as string | null;
     const content = formData.get('content') as string;
@@ -86,6 +91,20 @@ export async function sendMessage(formData: FormData) {
     // Determine recipient
     const recipientId = conversation.user1Id === user.userId ? conversation.user2Id : conversation.user1Id;
 
+    // Check if user is blocked
+    const block = await db.userBlock.findFirst({
+      where: {
+        OR: [
+          { blockingUserId: user.userId, blockedUserId: recipientId },
+          { blockingUserId: recipientId, blockedUserId: user.userId }
+        ]
+      }
+    });
+
+    if (block) {
+      return { success: false, error: 'Cannot send message. Communication between these users is blocked.' };
+    }
+
     // Send Message
     const message = await db.$transaction(async (tx) => {
       const msg = await tx.message.create({
@@ -144,6 +163,11 @@ export async function initializeConversation(claimId?: string, lostItemId?: stri
   try {
     const user = await getAuthenticatedUser();
     enforceRateLimit('general', user.userId, 10, 60 * 1000); // 10 per min
+
+    const dbUser = await db.user.findUnique({ where: { id: user.userId }, select: { emailVerified: true } });
+    if (!dbUser?.emailVerified) {
+      return { success: false, error: 'You must verify your email address to start conversations.' };
+    }
 
     let conversation;
 

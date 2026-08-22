@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
-import { approveClaim, rejectClaim } from '@/actions/claims';
+import { approveClaim, rejectClaim, confirmHandover } from '@/actions/claims';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/components/ui/Toast';
-import { MessageSquare, Check, X, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { MessageSquare, Check, X, Clock, ChevronDown, ChevronUp, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type ClaimWithRelations = {
@@ -17,6 +17,8 @@ type ClaimWithRelations = {
   status: string;
   reasonForClaim: string;
   description: string;
+  returnConfirmedByFinder: boolean;
+  returnConfirmedByClaimant: boolean;
   createdAt: Date;
   foundItem: {
     id: string;
@@ -73,11 +75,30 @@ export function ClaimsList({ claims, mode }: ClaimsListProps) {
     }
   };
 
+  const handleConfirmHandover = async (claimId: string) => {
+    if (!window.confirm('Confirm that the item has been successfully handed over?')) return;
+    
+    setProcessingId(claimId);
+    try {
+      const res = await confirmHandover(claimId);
+      if (res.success) {
+        addToast('success', 'Handover confirmed!');
+      } else {
+        addToast('error', res.error || 'Failed to confirm handover');
+      }
+    } catch (e) {
+      addToast('error', 'An unexpected error occurred');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {claims.map((claim) => {
         const isExpanded = expandedId === claim.id;
-        const isPending = claim.status === 'pending';
+        const isPending = ['submitted', 'under_review'].includes(claim.status);
+        const isHandover = ['accepted', 'collection_arranged'].includes(claim.status);
 
         return (
           <div key={claim.id} className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl overflow-hidden shadow-sm transition-all hover:shadow-md">
@@ -90,10 +111,10 @@ export function ClaimsList({ claims, mode }: ClaimsListProps) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <Badge 
-                    variant={claim.status === 'approved' ? 'success' : claim.status === 'rejected' ? 'danger' : 'warning'}
+                    variant={['accepted', 'collection_arranged'].includes(claim.status) ? 'success' : claim.status === 'rejected' ? 'danger' : 'warning'}
                     size="sm"
                   >
-                    {claim.status.charAt(0).toUpperCase() + claim.status.slice(1)}
+                    {claim.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                   </Badge>
                   <span className="text-xs text-[var(--text-tertiary)] flex items-center gap-1">
                     <Clock className="w-3 h-3" />
@@ -140,12 +161,39 @@ export function ClaimsList({ claims, mode }: ClaimsListProps) {
                   </div>
                 )}
                 
-                {claim.status === 'approved' && (
-                  <Link href={`/messages/new?claimId=${claim.id}`} onClick={e => e.stopPropagation()}>
-                    <Button size="sm" variant="outline" icon={<MessageSquare className="w-4 h-4" />}>
-                      Message
-                    </Button>
-                  </Link>
+                {isHandover && (
+                  <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                    <Link href={`/messages/new?claimId=${claim.id}`}>
+                      <Button size="sm" variant="outline" icon={<MessageSquare className="w-4 h-4" />}>
+                        Message
+                      </Button>
+                    </Link>
+
+                    {((mode === 'received' && !claim.returnConfirmedByFinder) || 
+                      (mode === 'submitted' && !claim.returnConfirmedByClaimant)) && (
+                      <Button 
+                        size="sm" 
+                        variant="primary"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white border-transparent"
+                        onClick={() => handleConfirmHandover(claim.id)}
+                        disabled={processingId === claim.id}
+                        icon={<Check className="w-4 h-4" />}
+                      >
+                        {mode === 'received' ? 'I Handed It Over' : 'I Received It'}
+                      </Button>
+                    )}
+
+                    {((mode === 'received' && claim.returnConfirmedByFinder) || 
+                      (mode === 'submitted' && claim.returnConfirmedByClaimant)) && (
+                      <Badge variant="success" size="sm">
+                        Waiting for other party
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
+                {claim.status === 'returned' && (
+                  <Badge variant="success" size="sm">Handover Complete</Badge>
                 )}
 
                 <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[var(--bg-tertiary)] text-[var(--text-secondary)]">
@@ -175,6 +223,24 @@ export function ClaimsList({ claims, mode }: ClaimsListProps) {
                     {mode === 'received' && isPending && (
                       <div className="mt-4 p-3 rounded-lg bg-[var(--color-info-light)] border border-[var(--color-info)]/20 text-sm text-[var(--color-info)]/90">
                         Review the proof above carefully. Does it accurately describe your private knowledge of the item? If so, approve the claim to open messaging with this user.
+                      </div>
+                    )}
+
+                    {isHandover && (
+                      <div className="mt-6">
+                        <h4 className="text-sm font-semibold text-emerald-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <ShieldCheck className="w-4 h-4" /> Safe Return Checklist
+                        </h4>
+                        <ul className="space-y-2 text-sm text-slate-700 bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                          <li className="flex items-start gap-2"><Check className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" /> Meet in a public, well-lit place</li>
+                          <li className="flex items-start gap-2"><Check className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" /> Do not share verification codes prematurely</li>
+                          <li className="flex items-start gap-2"><Check className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" /> Verify the item before completing the handover</li>
+                          <li className="flex items-start gap-2 text-rose-700 font-medium"><X className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" /> FindBack does not require advance payments. Never send money.</li>
+                          <li className="flex items-start gap-2"><MessageSquare className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" /> Use in-app messaging to coordinate</li>
+                        </ul>
+                        <p className="text-xs text-slate-500 mt-3 italic">
+                          Click "{mode === 'received' ? 'I Handed It Over' : 'I Received It'}" above once the physical exchange is complete. The return will only be marked as completed when both parties confirm.
+                        </p>
                       </div>
                     )}
                   </div>

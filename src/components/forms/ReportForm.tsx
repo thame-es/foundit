@@ -4,8 +4,8 @@
 // FoundIt — Report Item Multi-Step Form
 // ===========================================
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createLostItem, createFoundItem, updateLostItem, updateFoundItem } from '@/actions/items';
@@ -25,10 +25,12 @@ interface ReportFormProps {
   type: 'lost' | 'found';
   itemId?: string;
   initialData?: any;
+  userId?: string;
 }
 
-export function ReportForm({ type, itemId, initialData }: ReportFormProps) {
+export function ReportForm({ type, itemId, initialData, userId = 'guest' }: ReportFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { addToast } = useToast();
   
   const [step, setStep] = useState(1);
@@ -64,6 +66,69 @@ export function ReportForm({ type, itemId, initialData }: ReportFormProps) {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [images, setImages] = useState<File[]>([]);
+  
+  const [draftRestored, setDraftRestored] = useState(false);
+  const [successData, setSuccessData] = useState<{ slug: string; type: string } | null>(null);
+
+  // ─── Draft & Prefill Logic ──────────────────────
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    if (mountedRef.current || itemId) return;
+    mountedRef.current = true;
+
+    const draftKey = `findback_draft_${type}`;
+    try {
+      const savedDraft = localStorage.getItem(draftKey);
+      if (savedDraft) {
+        const parsed = JSON.parse(savedDraft);
+        const now = Date.now();
+        // Expire after 24 hours
+        if (now - parsed.timestamp < 24 * 60 * 60 * 1000) {
+          if (parsed.ownerId === userId || parsed.ownerId === 'guest') {
+            setFormData(parsed.data);
+            setDraftRestored(true);
+            return; // Exit early so we don't overwrite with URL params
+          }
+        }
+        localStorage.removeItem(draftKey);
+      }
+    } catch (e) {
+      console.error('Draft restore error', e);
+    }
+
+    // If no draft, attempt to prefill from URL
+    if (!initialData && searchParams) {
+      setFormData(prev => ({
+        ...prev,
+        title: searchParams.get('q') || prev.title,
+        categoryId: searchParams.get('category') || prev.categoryId,
+        brand: searchParams.get('brand') || prev.brand,
+        colour: searchParams.get('colour') || prev.colour,
+        locationName: searchParams.get('locName') || prev.locationName,
+        latitude: searchParams.get('lat') ? parseFloat(searchParams.get('lat') as string) : prev.latitude,
+        longitude: searchParams.get('lng') ? parseFloat(searchParams.get('lng') as string) : prev.longitude,
+      }));
+    }
+  }, [type, itemId, userId, initialData, searchParams]);
+
+  // Save Draft
+  useEffect(() => {
+    if (!itemId && formData.title) {
+      const draftKey = `findback_draft_${type}`;
+      const payload = {
+        data: formData,
+        ownerId: userId,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(draftKey, JSON.stringify(payload));
+    }
+  }, [formData, type, itemId, userId]);
+
+  const discardDraft = () => {
+    localStorage.removeItem(`findback_draft_${type}`);
+    setDraftRestored(false);
+    window.location.reload();
+  };
 
   // ─── Step Validation ─────────────────────────────
   
@@ -124,6 +189,12 @@ export function ReportForm({ type, itemId, initialData }: ReportFormProps) {
     }
 
     if (!validateStep()) return;
+    
+    if (!userId || userId === 'guest') {
+      addToast('warning', 'Please sign in to publish this listing. Your progress is saved as a draft.');
+      router.push(`/login?redirect=/report/${type}`);
+      return;
+    }
     
     setIsSubmitting(true);
     
@@ -210,7 +281,13 @@ export function ReportForm({ type, itemId, initialData }: ReportFormProps) {
       }
 
       addToast('success', `Listing ${itemId ? 'updated' : 'created'} successfully!`);
-      router.push(`/${type}/${result.data?.slug}`);
+      
+      if (!itemId) {
+        localStorage.removeItem(`findback_draft_${type}`);
+        setSuccessData({ slug: result.data?.slug as string, type });
+      } else {
+        router.push(`/${type}/${result.data?.slug}`);
+      }
       
     } catch (error) {
       addToast('error', 'An unexpected error occurred.');
@@ -221,8 +298,42 @@ export function ReportForm({ type, itemId, initialData }: ReportFormProps) {
 
   // ─── Render ─────────────────────────────────────
 
+  if (successData) {
+    return (
+      <div className="max-w-2xl mx-auto text-center bg-[var(--bg-primary)] p-12 rounded-2xl border border-[var(--border-primary)] shadow-sm">
+        <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle2 className="w-10 h-10" />
+        </div>
+        <h2 className="text-3xl font-bold mb-4">Listing Published!</h2>
+        <p className="text-[var(--text-secondary)] mb-8">
+          Your {successData.type} item report is now live. We'll automatically check for matches and notify you if anything comes up.
+        </p>
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <Button onClick={() => router.push(`/${successData.type}/${successData.slug}`)}>
+            View My Listing
+          </Button>
+          <Button variant="outline" onClick={() => router.push('/search')}>
+            Return to Search
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
+      {draftRestored && (
+        <div className="mb-6 p-4 bg-[var(--color-primary-50)] border border-[var(--color-primary-200)] rounded-xl flex items-center justify-between" role="status" aria-live="polite">
+          <div className="flex items-center gap-3 text-[var(--color-primary-800)]">
+            <Info className="w-5 h-5" />
+            <span className="text-sm font-medium">Your previous draft was restored.</span>
+          </div>
+          <button onClick={discardDraft} type="button" className="text-sm font-semibold text-[var(--color-primary-600)] hover:underline">
+            Discard
+          </button>
+        </div>
+      )}
+
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-2">

@@ -380,9 +380,9 @@ export function SidebarFilters() {
 export function EmptySearchState() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams.toString());
 
   const handleSaveSearch = async () => {
-    const params = new URLSearchParams(searchParams.toString());
     const query = params.get('q');
     const category = params.get('category');
     const locationName = params.get('locName');
@@ -422,22 +422,58 @@ export function EmptySearchState() {
     }
   };
 
+  const query = params.get('q');
+  const category = params.get('category');
+  const locationName = params.get('locName');
+  const brand = params.get('brand');
+  const colour = params.get('colour');
+
+    const filterTexts = [];
+    if (query) filterTexts.push(`"${query}"`);
+    if (category) filterTexts.push(defaultCategories.find(c => c.slug === category)?.name || category);
+    if (brand) filterTexts.push(brand);
+    if (colour) filterTexts.push(colour);
+    if (locationName) filterTexts.push(`near ${locationName}`);
+    
+    const filterDescription = filterTexts.length > 0 
+      ? `We couldn't find any items matching: ${filterTexts.join(', ')}.`
+      : `We couldn't find any items matching your current filters.`;
+
+    const handleReportLost = () => {
+      // Pass the search params to the report form
+      const reportParams = new URLSearchParams(searchParams.toString());
+      // We might want to remove pagination or sort params since they don't apply to a report
+      reportParams.delete('page');
+      reportParams.delete('sort');
+      router.push(`/report/lost?${reportParams.toString()}`);
+    };
+
+    const handleClearFilters = () => {
+      router.push('/search');
+    };
+
   return (
     <div className="p-16 text-center bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-primary)] shadow-sm">
       <div className="w-16 h-16 bg-[var(--bg-secondary)] rounded-full flex items-center justify-center mx-auto mb-4">
         <Bell className="w-8 h-8 text-[var(--text-tertiary)]" />
       </div>
       <h3 className="text-xl font-bold mb-2">No items found</h3>
-      <p className="text-[var(--text-secondary)] mb-6 max-w-md mx-auto">
-        We couldn't find any items matching your current filters. We'll notify you when a new matching listing is reported.
+      <p className="text-[var(--text-secondary)] mb-2 max-w-md mx-auto">
+        {filterDescription}
+      </p>
+      <p className="text-sm text-[var(--text-tertiary)] mb-8 max-w-md mx-auto">
+        We'll notify you when a new matching listing is reported.
       </p>
       
       <div className="flex flex-col sm:flex-row justify-center gap-3">
-        <Button onClick={handleSaveSearch} className="px-8 shadow-md">
-          Create an alert
+        <Button onClick={handleSaveSearch} className="px-6 shadow-md">
+          Notify me about future matches
         </Button>
-        <Button variant="outline" onClick={() => router.push('/report/lost')}>
-          Report my lost item
+        <Button variant="outline" onClick={handleReportLost}>
+          Report this item as lost
+        </Button>
+        <Button variant="ghost" onClick={handleClearFilters} className="text-[var(--text-secondary)]">
+          Clear filters
         </Button>
       </div>
     </div>
