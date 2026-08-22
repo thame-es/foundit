@@ -81,9 +81,10 @@ export default async function SearchPage({
                       <div className="relative aspect-video bg-[var(--bg-secondary)] flex items-center justify-center overflow-hidden">
                         {item.images && item.images.length > 0 ? (
                           <img 
-                            src={`/api/uploads/medium/${item.images[0].filename}`} 
+                            src={`${appConfig.url}/api/uploads/medium/${item.images[0].filename}`} 
                             alt={item.title} 
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            onError={(e) => { e.currentTarget.src = `${appConfig.url}/images/social-fallback.png`; }}
                           />
                         ) : (
                           <ImageIcon className="w-10 h-10 text-[var(--text-tertiary)] opacity-50" />
@@ -109,11 +110,11 @@ export default async function SearchPage({
                           </span>
                         </div>
                         
-                        <h3 className="font-bold text-[var(--text-primary)] mb-1 line-clamp-1 group-hover:text-[var(--color-primary-600)] transition-colors">
+                        <h3 className="font-bold text-[var(--text-primary)] mb-1 line-clamp-1 group-hover:text-[var(--color-primary-600)] transition-colors break-words">
                           {item.title}
                         </h3>
                         
-                        <p className="text-sm text-[var(--text-secondary)] line-clamp-2 mb-4 flex-1">
+                        <p className="text-sm text-[var(--text-secondary)] line-clamp-2 mb-4 flex-1 break-words">
                           {item.publicDescription}
                         </p>
                         
