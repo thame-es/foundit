@@ -192,8 +192,8 @@ export default async function FoundItemPage({ params }: { params: Promise<{ slug
                   {item.images.map((img) => (
                     <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border border-[var(--border-primary)] bg-slate-100 dark:bg-slate-800">
                       <ImageWithFallback 
-                        src={`${appConfig.url}/api/uploads/medium/${img.filename}`} 
-                        fallbackSrc={`${appConfig.url}/images/social-fallback.png`}
+                        src={`/api/uploads/medium/${img.filename}`} 
+                        fallbackSrc={`/images/social-fallback.png`}
                         alt={item.title} 
                         className="w-full h-full object-cover"
                       />

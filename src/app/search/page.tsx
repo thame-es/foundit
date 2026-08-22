@@ -83,8 +83,8 @@ export default async function SearchPage({
                       <div className="relative aspect-video bg-[var(--bg-secondary)] flex items-center justify-center overflow-hidden">
                         {item.images && item.images.length > 0 ? (
                           <ImageWithFallback 
-                            src={`${appConfig.url}/api/uploads/medium/${item.images[0].filename}`} 
-                            fallbackSrc={`${appConfig.url}/images/social-fallback.png`}
+                            src={`/api/uploads/medium/${item.images[0].filename}`} 
+                            fallbackSrc={`/images/social-fallback.png`}
                             alt={item.title} 
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
