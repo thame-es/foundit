@@ -23,6 +23,9 @@ export function ShareMenu({ url, title, description, itemId, itemSlug, itemType 
   const menuRef = useRef<HTMLDivElement>(null);
   const { addToast } = useToast();
 
+  // Use the actual browser URL if available, otherwise fallback to the provided prop
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : url;
+
   const shareText = `${title}\n\n${description}`;
 
   useEffect(() => {
@@ -42,7 +45,7 @@ export function ShareMenu({ url, title, description, itemId, itemSlug, itemType 
   };
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(`${shareText}\n\n${url}`);
+    navigator.clipboard.writeText(`${shareText}\n\n${currentUrl}`);
     setCopied(true);
     addToast('success', 'Link copied to clipboard!');
     setTimeout(() => setCopied(false), 2000);
@@ -54,7 +57,7 @@ export function ShareMenu({ url, title, description, itemId, itemSlug, itemType 
         await navigator.share({
           title,
           text: description,
-          url,
+          url: currentUrl,
         });
       } catch (err) {
         console.error('Error sharing:', err);
@@ -92,7 +95,7 @@ export function ShareMenu({ url, title, description, itemId, itemSlug, itemType 
             )}
 
             <button 
-              onClick={() => handleShare('whatsapp', () => window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + '\n' + url)}`, '_blank'))}
+              onClick={() => handleShare('whatsapp', () => window.open(`https://wa.me/?text=${encodeURIComponent(shareText + '\n\n' + currentUrl)}`, '_blank'))}
               className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors group text-[var(--text-secondary)] hover:text-green-600"
             >
               <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -102,7 +105,7 @@ export function ShareMenu({ url, title, description, itemId, itemSlug, itemType 
             </button>
 
             <button 
-              onClick={() => handleShare('email', () => window.open(`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(shareText + '\n\nView details: ' + url)}`, '_blank'))}
+              onClick={() => handleShare('email', () => window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(shareText + '\n\n' + currentUrl)}`)}
               className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors group text-[var(--text-secondary)] hover:text-red-600"
             >
               <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center group-hover:scale-110 transition-transform">
