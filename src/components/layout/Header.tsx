@@ -17,7 +17,6 @@ import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/Button';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
-import { appConfig } from '@/lib/config';
 
 interface HeaderProps {
   user: {

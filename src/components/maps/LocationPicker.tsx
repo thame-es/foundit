@@ -14,7 +14,8 @@ import 'leaflet/dist/leaflet.css';
 import { appConfig } from '@/lib/config';
 
 // Fix for default Leaflet icons in Next.js
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+type DefaultIcon = L.Icon.Default & { _getIconUrl?: string };
+delete (L.Icon.Default.prototype as DefaultIcon)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: '/icons/marker-icon-2x.png',
   iconUrl: '/icons/marker-icon.png',

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Share2, Link as LinkIcon, MessageCircle, Mail, Printer, Check, X } from 'lucide-react';
+import { Share2, Link as LinkIcon, MessageCircle, Printer, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { logShareEvent } from '@/actions/analytics';
 import { QRCodeGenerator } from './QRCodeGenerator';
@@ -23,13 +23,9 @@ export function ShareMenu({ url, title, description, itemId, itemSlug, itemType 
   const menuRef = useRef<HTMLDivElement>(null);
   const { addToast } = useToast();
 
-  const [currentUrl, setCurrentUrl] = useState(url);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setCurrentUrl(window.location.href);
-    }
-  }, []);
+  const getShareUrl = () => {
+    return typeof window !== 'undefined' ? window.location.href : url;
+  };
 
   const shareText = `${title}\n\n${description}`;
 
@@ -50,7 +46,7 @@ export function ShareMenu({ url, title, description, itemId, itemSlug, itemType 
   };
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(`${shareText}\n\n${currentUrl}`);
+    navigator.clipboard.writeText(`${shareText}\n\n${getShareUrl()}`);
     setCopied(true);
     addToast('success', 'Link copied to clipboard!');
     setTimeout(() => setCopied(false), 2000);
@@ -62,7 +58,7 @@ export function ShareMenu({ url, title, description, itemId, itemSlug, itemType 
         await navigator.share({
           title,
           text: description,
-          url: currentUrl,
+          url: getShareUrl(),
         });
       } catch (err) {
         console.error('Error sharing:', err);
@@ -100,7 +96,7 @@ export function ShareMenu({ url, title, description, itemId, itemSlug, itemType 
             )}
 
             <button 
-              onClick={() => handleShare('whatsapp', () => window.open(`https://wa.me/?text=${encodeURIComponent(shareText + '\n\n' + currentUrl)}`, '_blank'))}
+              onClick={() => handleShare('whatsapp', () => window.open(`https://wa.me/?text=${encodeURIComponent(`${title} - ${getShareUrl()}`)}`, '_blank'))}
               className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors group text-[var(--text-secondary)] hover:text-green-600"
             >
               <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -110,13 +106,13 @@ export function ShareMenu({ url, title, description, itemId, itemSlug, itemType 
             </button>
 
             <button 
-              onClick={() => handleShare('email', () => window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(shareText + '\n\n' + currentUrl)}`)}
-              className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors group text-[var(--text-secondary)] hover:text-red-600"
+              onClick={() => handleShare('twitter', () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(getShareUrl())}`, '_blank'))}
+              className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors group text-[var(--text-secondary)] hover:text-sky-600"
             >
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Mail className="w-5 h-5 text-red-600" />
+              <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center group-hover:scale-110 transition-transform text-sky-600 font-bold">
+                X
               </div>
-              <span className="text-[10px] font-medium text-center">Email</span>
+              <span className="text-[10px] font-medium text-center">Twitter</span>
             </button>
 
             <button 

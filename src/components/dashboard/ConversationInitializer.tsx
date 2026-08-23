@@ -15,7 +15,7 @@ export function ConversationInitializer() {
 
   useEffect(() => {
     if (!claimId && !lostItemId) {
-      setError('No claim ID or lost item ID provided in the URL.');
+      setTimeout(() => setError('No claim ID or lost item ID provided in the URL.'), 0);
       return;
     }
 

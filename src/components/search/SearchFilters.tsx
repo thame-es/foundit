@@ -89,7 +89,7 @@ export function SearchClientFilters() {
     const params = new URLSearchParams(searchParams.toString());
     
     // Generate a default name
-    let nameParts = [];
+    const nameParts: string[] = [];
     if (query) nameParts.push(`"${query}"`);
     if (category) nameParts.push(defaultCategories.find(c => c.slug === category)?.name || category);
     if (locationName) nameParts.push(`near ${locationName}`);
@@ -99,7 +99,7 @@ export function SearchClientFilters() {
     const input = {
       name: searchName,
       query: query || undefined,
-      type: (type as any) === 'all' ? 'all' : (type as any) || 'all',
+      type: type === 'all' ? 'all' : (type as string) || 'all',
       categoryId: category || undefined,
       brand: brand || undefined,
       colour: colour || undefined,
@@ -158,7 +158,7 @@ export function SearchClientFilters() {
           <span className="text-sm text-[var(--text-secondary)] mr-2">Active filters:</span>
           {query && (
             <span className="inline-flex items-center gap-1 px-3 py-1 bg-[var(--color-primary-50)] text-[var(--color-primary-700)] rounded-full text-xs font-medium">
-              "{query}" <X className="w-3 h-3 cursor-pointer" onClick={() => removeFilter('q')} />
+              &quot;{query}&quot; <X className="w-3 h-3 cursor-pointer" onClick={() => removeFilter('q')} />
             </span>
           )}
           {category && (
@@ -387,7 +387,7 @@ export function EmptySearchState() {
     const category = params.get('category');
     const locationName = params.get('locName');
 
-    let nameParts = [];
+    const nameParts: string[] = [];
     if (query) nameParts.push(`"${query}"`);
     if (category) nameParts.push(defaultCategories.find(c => c.slug === category)?.name || category);
     if (locationName) nameParts.push(`near ${locationName}`);
@@ -397,7 +397,7 @@ export function EmptySearchState() {
     const input = {
       name: searchName,
       query: query || undefined,
-      type: (params.get('type') as any) === 'all' ? 'all' : (params.get('type') as any) || 'all',
+      type: params.get('type') === 'all' ? 'all' : (params.get('type') as string) || 'all',
       categoryId: category || undefined,
       brand: params.get('brand') || undefined,
       colour: params.get('colour') || undefined,
@@ -462,7 +462,7 @@ export function EmptySearchState() {
         {filterDescription}
       </p>
       <p className="text-sm text-[var(--text-tertiary)] mb-8 max-w-md mx-auto">
-        We'll notify you when a new matching listing is reported.
+        We&apos;ll notify you when a new matching listing is reported.
       </p>
       
       <div className="flex flex-col sm:flex-row justify-center gap-3">

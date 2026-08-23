@@ -58,10 +58,15 @@ export default async function ClaimItemPage({ params }: { params: Promise<{ id: 
     );
   }
 
+  const userLostItems = await db.lostItem.findMany({
+    where: { userId: session.userId, status: 'active' },
+    select: { id: true, title: true }
+  });
+
   return (
     <div className="min-h-screen bg-[var(--bg-secondary)] py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <ClaimForm foundItemId={item.id} itemTitle={item.title} />
+        <ClaimForm foundItemId={item.id} itemTitle={item.title} userLostItems={userLostItems} />
       </div>
     </div>
   );

@@ -7,16 +7,16 @@ interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElemen
   fallbackSrc?: string;
 }
 
-export function ImageWithFallback({ src, fallbackSrc, alt, className, ...props }: ImageWithFallbackProps) {
-  const [imgSrc, setImgSrc] = useState(src);
+export function ImageWithFallback({ src, alt, className, ...props }: ImageWithFallbackProps) {
   const [hasError, setHasError] = useState(false);
+  const [prevSrc, setPrevSrc] = useState(src);
 
-  useEffect(() => {
-    setImgSrc(src);
+  if (src !== prevSrc) {
+    setPrevSrc(src);
     setHasError(false);
-  }, [src]);
+  }
 
-  if (hasError || !imgSrc) {
+  if (hasError || !src) {
     return (
       <div className={`flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 text-[var(--text-tertiary)] ${className}`}>
         <ImageIcon className="w-1/3 h-1/3 opacity-20 mb-2 max-w-[40px] max-h-[40px]" />
@@ -29,7 +29,7 @@ export function ImageWithFallback({ src, fallbackSrc, alt, className, ...props }
     <img
       {...props}
       className={className}
-      src={imgSrc}
+      src={src}
       alt={alt || ''}
       onError={() => {
         setHasError(true);

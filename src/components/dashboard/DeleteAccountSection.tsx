@@ -21,7 +21,7 @@ export function DeleteAccountSection() {
         router.push('/');
         router.refresh();
       }
-    } catch (err) {
+    } catch {
       setIsDeleting(false);
     }
   };

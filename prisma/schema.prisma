@@ -199,6 +199,7 @@ model LostItem {
   savedBy          SavedItem[]
   reports          Report[]
   conversations    Conversation[]
+  claims           Claim[]
 
   @@index([userId])
   @@index([categoryId])
@@ -299,6 +300,7 @@ model PossibleLocation {
 model Claim {
   id            String    @id @default(cuid())
   foundItemId   String
+  lostItemId    String?
   claimantId    String
   status        String    @default("submitted") // see claimStates in config
   dateLost      DateTime?
@@ -315,12 +317,14 @@ model Claim {
   updatedAt     DateTime  @updatedAt
 
   foundItem    FoundItem     @relation(fields: [foundItemId], references: [id], onDelete: Cascade)
+  lostItem     LostItem?     @relation(fields: [lostItemId], references: [id], onDelete: SetNull)
   claimant     User          @relation("ClaimantClaims", fields: [claimantId], references: [id], onDelete: Cascade)
   evidence     ClaimEvidence[]
   conversation Conversation?
   payment      Payment?
 
   @@index([foundItemId])
+  @@index([lostItemId])
   @@index([claimantId])
   @@index([status])
   @@index([createdAt])

@@ -57,7 +57,7 @@ export const SearchAlertEmail = ({
               </Text>
               
               <Text className="text-[#3f3f46] text-[15px] leading-[26px]">
-                A new item was just published that matches your saved search for <strong>"{searchName}"</strong>.
+                  We&apos;ve found some new items that match your search for &quot;{searchName}&quot;.
               </Text>
               
               <Section className="bg-[#f8fafc] rounded-lg p-4 my-6 border border-[#e2e8f0]">

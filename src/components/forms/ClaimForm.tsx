@@ -14,13 +14,15 @@ import { useToast } from '@/components/ui/Toast';
 interface ClaimPageProps {
   foundItemId: string;
   itemTitle: string;
+  userLostItems: { id: string; title: string }[];
 }
 
-export function ClaimForm({ foundItemId, itemTitle }: ClaimPageProps) {
+export function ClaimForm({ foundItemId, itemTitle, userLostItems }: ClaimPageProps) {
   const router = useRouter();
   const { addToast } = useToast();
   
   const [proof, setProof] = useState('');
+  const [lostItemId, setLostItemId] = useState('none');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,6 +37,7 @@ export function ClaimForm({ foundItemId, itemTitle }: ClaimPageProps) {
     const formData = new FormData();
     formData.append('foundItemId', foundItemId);
     formData.append('verificationProof', proof);
+    formData.append('lostItemId', lostItemId);
 
     try {
       const result = await submitClaim(formData);
@@ -45,7 +48,7 @@ export function ClaimForm({ foundItemId, itemTitle }: ClaimPageProps) {
       } else {
         addToast('error', result.error || 'Failed to submit claim.');
       }
-    } catch (error) {
+    } catch {
       addToast('error', 'An unexpected error occurred.');
     } finally {
       setIsSubmitting(false);
@@ -95,6 +98,27 @@ export function ClaimForm({ foundItemId, itemTitle }: ClaimPageProps) {
               required
               minLength={10}
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+              Related Lost Report (Optional)
+            </label>
+            <p className="text-xs text-[var(--text-secondary)] mb-3">
+              If you previously reported this item as lost, link it here. When the finder returns this item to you, your lost report will automatically be marked as recovered.
+            </p>
+            <select
+              className="w-full px-4 py-3 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] text-sm appearance-none"
+              value={lostItemId}
+              onChange={(e) => setLostItemId(e.target.value)}
+            >
+              <option value="none">I did not create a lost report</option>
+              {userLostItems.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.title}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="pt-4 border-t border-[var(--border-primary)]">

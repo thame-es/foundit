@@ -37,7 +37,7 @@ export function ItemActions({ itemId, itemType, itemSlug }: ItemActionsProps) {
         addToast('error', result.error || 'Failed to delete listing');
         setIsDeleting(false);
       }
-    } catch (error) {
+    } catch {
       addToast('error', 'An unexpected error occurred');
       setIsDeleting(false);
     }

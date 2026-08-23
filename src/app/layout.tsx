@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
 import { Suspense } from 'react';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -11,12 +10,7 @@ import { NavigationProgress } from '@/components/NavigationProgress';
 import { getCurrentUser } from '@/lib/auth/session';
 import { appConfig } from '@/lib/config';
 
-// Initialize Inter font
-const inter = Inter({ 
-  subsets: ['latin'],
-  variable: '--font-sans',
-  display: 'swap',
-});
+// Using system font stack for reproducible builds without external requests
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -44,7 +38,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}>
+      <body className="font-sans antialiased min-h-screen flex flex-col">
         <ThemeProvider>
           <ToastProvider>
             <Suspense fallback={null}>

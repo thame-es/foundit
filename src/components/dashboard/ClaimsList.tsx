@@ -235,7 +235,7 @@ export function ClaimsList({ claims, mode }: ClaimsListProps) {
                           <li className="flex items-start gap-2"><Check className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" /> Meet in a public, well-lit place</li>
                           <li className="flex items-start gap-2"><Check className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" /> Do not share verification codes prematurely</li>
                           <li className="flex items-start gap-2"><Check className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" /> Verify the item before completing the handover</li>
-                          <li className="flex items-start gap-2 text-rose-700 font-medium"><X className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" /> FindBack does not require advance payments. Never send money.</li>
+                          <li className="flex items-start gap-2 text-rose-700 font-medium"><X className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" /> FoundIt does not require advance payments. Never send money.</li>
                           <li className="flex items-start gap-2"><MessageSquare className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" /> Use in-app messaging to coordinate</li>
                         </ul>
                         <p className="text-xs text-slate-500 mt-3 italic">

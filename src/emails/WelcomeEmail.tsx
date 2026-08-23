@@ -6,8 +6,6 @@ import {
   Heading,
   Hr,
   Html,
-  Img,
-  Link,
   Preview,
   Section,
   Text,
@@ -54,7 +52,7 @@ export const WelcomeEmail = ({
               </Text>
               
               <Text className="text-[#3f3f46] text-[15px] leading-[26px]">
-                We are absolutely thrilled to have you join us. FoundIt is the premier platform designed to help people recover their lost belongings, or safely return items they've found.
+                We are absolutely thrilled to have you join us. FoundIt is the premier platform designed to help people recover their lost belongings, or safely return items they&apos;ve found.
               </Text>
               
               <Text className="text-[#3f3f46] text-[15px] leading-[26px]">
@@ -73,7 +71,7 @@ export const WelcomeEmail = ({
               <Hr className="border border-solid border-[#e4e4e7] my-[26px] mx-0 w-full" />
               
               <Text className="text-[#71717a] text-[13px] leading-[24px]">
-                If you didn't create an account with FoundIt, you can safely ignore this email. No further action is required.
+                If you didn&apos;t create an account with FoundIt, you can safely ignore this email. No further action is required.
               </Text>
             </Section>
           </Container>

@@ -14,6 +14,7 @@ import { claimStates, foundItemStatuses, lostItemStatuses } from '@/lib/config';
 const submitClaimSchema = z.object({
   foundItemId: z.string(),
   verificationProof: z.string().min(10, 'Please provide detailed proof of ownership').max(1000),
+  lostItemId: z.string().optional(),
   // images handled separately
 });
 
@@ -29,10 +30,19 @@ export async function submitClaim(formData: FormData) {
 
     const foundItemId = formData.get('foundItemId') as string;
     const verificationProof = formData.get('verificationProof') as string;
+    const formLostItemId = formData.get('lostItemId') as string;
+    const lostItemId = formLostItemId === 'none' ? undefined : formLostItemId;
 
-    const result = submitClaimSchema.safeParse({ foundItemId, verificationProof });
+    const result = submitClaimSchema.safeParse({ foundItemId, verificationProof, lostItemId });
     if (!result.success) {
       return { success: false, error: 'Invalid claim data provided' };
+    }
+
+    if (lostItemId) {
+      const lostItem = await db.lostItem.findUnique({ where: { id: lostItemId, userId: user.userId, status: 'active' } });
+      if (!lostItem) {
+        return { success: false, error: 'Invalid lost item selected or item is not active.' };
+      }
     }
 
     // Ensure item exists and is active
@@ -61,6 +71,7 @@ export async function submitClaim(formData: FormData) {
         data: {
           claimantId: user.userId,
           foundItemId,
+          lostItemId,
           reasonForClaim: verificationProof,
           description: verificationProof,
           status: claimStates.SUBMITTED,
@@ -239,14 +250,10 @@ export async function confirmHandover(claimId: string) {
           data: { status: foundItemStatuses.RETURNED }
         });
         
-        // If the claimant had a linked Lost Item, mark it recovered
-        // We find the linked lost item by finding a conversation or just searching by claimantId
-        const linkedLostItem = await tx.lostItem.findFirst({
-          where: { userId: claim.claimantId, status: lostItemStatuses.ACTIVE }
-        });
-        if (linkedLostItem) {
-          await tx.lostItem.update({
-            where: { id: linkedLostItem.id },
+        // If the claimant explicitly linked a Lost Item, mark it recovered
+        if (claim.lostItemId) {
+          await tx.lostItem.updateMany({
+            where: { id: claim.lostItemId, userId: claim.claimantId, status: lostItemStatuses.ACTIVE },
             data: { status: lostItemStatuses.RECOVERED }
           });
         }

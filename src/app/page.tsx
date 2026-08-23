@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Search, MapPin, ShieldCheck, CheckCircle, ArrowRight } from 'lucide-react';
+import { Search, MapPin, ShieldCheck, CheckCircle, ArrowRight, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { defaultCategories } from '@/lib/config';
@@ -122,10 +122,10 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="p-8 rounded-3xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] relative group hover:border-[var(--color-primary-400)] transition-colors">
               <div className="w-14 h-14 rounded-2xl bg-[var(--color-primary-100)] text-[var(--color-primary-600)] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Search className="w-7 h-7" />
+                <FileText className="w-7 h-7" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Does FoundIt charge a fee?</h3>
-              <p className="text-[var(--text-secondary)]">No, FoundIt is completely free to use for both reporting lost items and claiming found ones. We believe helping people shouldn&apos;t cost money.</p>
+              <h3 className="text-xl font-bold mb-3">1. Post Listing</h3>
+              <p className="text-[var(--text-secondary)]">Quickly create a detailed listing for an item you lost or found. Add photos and location markers to help with the search.</p>
             </div>
 
             <div className="p-8 rounded-3xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] relative group hover:border-[var(--color-accent-400)] transition-colors">
@@ -186,20 +186,20 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-4xl font-bold text-[var(--color-primary-300)] mb-2">10k+</div>
-              <div className="text-sm font-medium text-white/80">Items Returned</div>
+              <div className="text-xl sm:text-2xl font-bold text-[var(--color-primary-300)] mb-2">Free to use</div>
+              <div className="text-sm font-medium text-white/80">No hidden fees or subscriptions</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-[var(--color-primary-300)] mb-2">95%</div>
-              <div className="text-sm font-medium text-white/80">Success Rate on Claims</div>
+              <div className="text-xl sm:text-2xl font-bold text-[var(--color-primary-300)] mb-2">Private Verification</div>
+              <div className="text-sm font-medium text-white/80">Claimants prove ownership safely</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-[var(--color-primary-300)] mb-2">24/7</div>
-              <div className="text-sm font-medium text-white/80">Community Moderation</div>
+              <div className="text-xl sm:text-2xl font-bold text-[var(--color-primary-300)] mb-2">Secure Messaging</div>
+              <div className="text-sm font-medium text-white/80">Coordinate returns anonymously</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-[var(--color-primary-300)] mb-2">Zero</div>
-              <div className="text-sm font-medium text-white/80">Hidden Fees</div>
+              <div className="text-xl sm:text-2xl font-bold text-[var(--color-primary-300)] mb-2">Location Based</div>
+              <div className="text-sm font-medium text-white/80">Find matches in your local area</div>
             </div>
           </div>
         </div>
@@ -210,7 +210,7 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold mb-6">Ready to find what you lost?</h2>
           <p className="text-xl text-[var(--text-secondary)] mb-10">
-            Join thousands of others who have reunited with their lost belongings through FoundIt.
+            Join the community and help reunite lost belongings through FoundIt.
           </p>
           <Link href="/register">
             <Button size="xl" icon={<ArrowRight className="w-5 h-5" />} iconPosition="right">

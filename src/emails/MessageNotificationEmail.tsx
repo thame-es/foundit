@@ -6,7 +6,6 @@ import {
   Heading,
   Hr,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -51,13 +50,13 @@ export const MessageNotificationEmail = ({
               </Heading>
               
               <Text className="text-[#3f3f46] text-[15px] leading-[26px] mt-[24px]">
-                <strong>{senderName}</strong> sent you a message regarding <strong>"{itemTitle}"</strong>.
+                <strong>{senderName}</strong> sent you a message regarding <strong>&quot;{itemTitle}&quot;</strong>.
               </Text>
               
               {/* Premium Message Bubble */}
               <Section className="bg-[#eef2ff] border border-solid border-[#c7d2fe] rounded-xl p-[20px] my-[24px] shadow-sm">
                 <Text className="text-[#3730a3] text-[15px] leading-[26px] italic m-0">
-                  "{messageSnippet.length > 150 ? messageSnippet.substring(0, 150) + '...' : messageSnippet}"
+                  &quot;{messageSnippet.length > 150 ? messageSnippet.substring(0, 150) + '...' : messageSnippet}&quot;
                 </Text>
               </Section>
               

@@ -21,7 +21,7 @@ export function VerificationBanner() {
       } else {
         addToast('error', res.error || 'Failed to send email');
       }
-    } catch (e) {
+    } catch {
       addToast('error', 'An unexpected error occurred');
     } finally {
       setIsSending(false);

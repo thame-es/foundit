@@ -56,7 +56,7 @@ export function TrustExplanation() {
   return (
     <div className="mt-4 p-4 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)]">
       <h4 className="text-sm font-semibold flex items-center gap-1.5 mb-2 text-[var(--text-primary)]">
-        <Info className="w-4 h-4" /> How FindBack protects you
+        <Info className="w-4 h-4" /> How FoundIt protects you
       </h4>
       <ul className="text-xs text-[var(--text-secondary)] space-y-1.5 ml-5 list-disc">
         <li><strong className="text-[var(--text-primary)]">Private Verification:</strong> Handover details are kept secret until a claim is verified.</li>

@@ -50,14 +50,14 @@ export function ReportModal({ isOpen, onClose, targetType, targetId, targetName 
         await blockUser(targetId, 'Blocked during report');
       }
 
-      addToast('success', 'Report submitted successfully. Thank you for keeping FindBack safe.');
+      addToast('success', 'Report submitted successfully. Thank you for keeping FoundIt safe.');
       onClose();
       
       if (blockAlso && targetType === 'user') {
         router.push('/dashboard');
       }
-    } catch (err) {
-      addToast('error', 'An unexpected error occurred');
+    } catch {
+      addToast('error', 'Failed to submit report. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

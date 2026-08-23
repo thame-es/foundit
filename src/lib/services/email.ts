@@ -91,7 +91,7 @@ export async function sendVerificationEmail(to: string, displayName: string, ver
  * Sends a 6-digit OTP verification email to users.
  */
 export async function sendOtpVerificationEmail(to: string, displayName: string, otp: string) {
-  const subject = `Your FindBack verification code`;
+  const subject = `Your FoundIt verification code`;
   const expiryMinutes = parseInt(process.env.OTP_EXPIRY_MINUTES || '10');
 
   if (!process.env.SMTP_USER) {

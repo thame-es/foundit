@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server';
 // Routes that require authentication
 const protectedPaths = ['/dashboard', '/report', '/admin'];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const response = NextResponse.next();
 

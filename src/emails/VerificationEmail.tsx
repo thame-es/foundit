@@ -14,14 +14,14 @@ export default function VerificationEmail({
 }: VerificationEmailProps) {
   return (
     <Html>
-      <Preview>Verify your email address for FindBack</Preview>
+      <Preview>Verify your email address for FoundIt</Preview>
       <Container style={container}>
         <Heading style={h1}>Verify your email</Heading>
         
         <Text style={text}>Hi {displayName},</Text>
         <Text style={text}>
-          Thank you for joining FindBack. Please verify your email address to unlock all features, 
-          including earning a "Verified Email" badge on your profile.
+          Thank you for joining FoundIt. Please verify your email address to unlock all features, 
+          including earning a &quot;Verified Email&quot; badge on your profile.
         </Text>
         
         <Section style={buttonContainer}>
@@ -35,7 +35,7 @@ export default function VerificationEmail({
         </Text>
         
         <Text style={footer}>
-          &copy; {new Date().getFullYear()} FindBack. All rights reserved. <br/>
+          &copy; {new Date().getFullYear()} FoundIt. All rights reserved. <br/>
           <Link href={appUrl} style={footerLink}>{appUrl}</Link>
         </Text>
       </Container>

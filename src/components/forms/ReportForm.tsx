@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { z } from 'zod';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { createLostItem, createFoundItem, updateLostItem, updateFoundItem } from '@/actions/items';
 import { Input } from '@/components/ui/Input';
@@ -24,6 +24,7 @@ import {
 interface ReportFormProps {
   type: 'lost' | 'found';
   itemId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData?: any;
   userId?: string;
 }
@@ -76,7 +77,7 @@ export function ReportForm({ type, itemId, initialData, userId = 'guest' }: Repo
     if (mountedRef.current || itemId) return;
     mountedRef.current = true;
 
-    const draftKey = `findback_draft_${type}`;
+    const draftKey = `foundit_draft_${type}`;
     try {
       const savedDraft = localStorage.getItem(draftKey);
       if (savedDraft) {
@@ -85,36 +86,40 @@ export function ReportForm({ type, itemId, initialData, userId = 'guest' }: Repo
         // Expire after 24 hours
         if (now - parsed.timestamp < 24 * 60 * 60 * 1000) {
           if (parsed.ownerId === userId || parsed.ownerId === 'guest') {
-            setFormData(parsed.data);
-            setDraftRestored(true);
+            setTimeout(() => {
+              setFormData(parsed.data);
+              setDraftRestored(true);
+            }, 0);
             return; // Exit early so we don't overwrite with URL params
           }
         }
         localStorage.removeItem(draftKey);
       }
-    } catch (e) {
-      console.error('Draft restore error', e);
+    } catch {
+      // ignore
     }
 
     // If no draft, attempt to prefill from URL
     if (!initialData && searchParams) {
-      setFormData(prev => ({
-        ...prev,
-        title: searchParams.get('q') || prev.title,
-        categoryId: searchParams.get('category') || prev.categoryId,
-        brand: searchParams.get('brand') || prev.brand,
-        colour: searchParams.get('colour') || prev.colour,
-        locationName: searchParams.get('locName') || prev.locationName,
-        latitude: searchParams.get('lat') ? parseFloat(searchParams.get('lat') as string) : prev.latitude,
-        longitude: searchParams.get('lng') ? parseFloat(searchParams.get('lng') as string) : prev.longitude,
-      }));
+      setTimeout(() => {
+        setFormData(prev => ({
+          ...prev,
+          title: searchParams.get('q') || prev.title,
+          categoryId: searchParams.get('category') || prev.categoryId,
+          brand: searchParams.get('brand') || prev.brand,
+          colour: searchParams.get('colour') || prev.colour,
+          locationName: searchParams.get('locName') || prev.locationName,
+          latitude: searchParams.get('lat') ? parseFloat(searchParams.get('lat') as string) : prev.latitude,
+          longitude: searchParams.get('lng') ? parseFloat(searchParams.get('lng') as string) : prev.longitude,
+        }));
+      }, 0);
     }
   }, [type, itemId, userId, initialData, searchParams]);
 
   // Save Draft
   useEffect(() => {
     if (!itemId && formData.title) {
-      const draftKey = `findback_draft_${type}`;
+      const draftKey = `foundit_draft_${type}`;
       const payload = {
         data: formData,
         ownerId: userId,
@@ -125,7 +130,7 @@ export function ReportForm({ type, itemId, initialData, userId = 'guest' }: Repo
   }, [formData, type, itemId, userId]);
 
   const discardDraft = () => {
-    localStorage.removeItem(`findback_draft_${type}`);
+    localStorage.removeItem(`foundit_draft_${type}`);
     setDraftRestored(false);
     window.location.reload();
   };
@@ -283,13 +288,13 @@ export function ReportForm({ type, itemId, initialData, userId = 'guest' }: Repo
       addToast('success', `Listing ${itemId ? 'updated' : 'created'} successfully!`);
       
       if (!itemId) {
-        localStorage.removeItem(`findback_draft_${type}`);
+        localStorage.removeItem(`foundit_draft_${type}`);
         setSuccessData({ slug: result.data?.slug as string, type });
       } else {
         router.push(`/${type}/${result.data?.slug}`);
       }
       
-    } catch (error) {
+    } catch {
       addToast('error', 'An unexpected error occurred.');
     } finally {
       setIsSubmitting(false);
@@ -306,7 +311,7 @@ export function ReportForm({ type, itemId, initialData, userId = 'guest' }: Repo
         </div>
         <h2 className="text-3xl font-bold mb-4">Listing Published!</h2>
         <p className="text-[var(--text-secondary)] mb-8">
-          Your {successData.type} item report is now live. We'll automatically check for matches and notify you if anything comes up.
+          Your {successData.type} item report is now live. We&apos;ll automatically check for matches and notify you if anything comes up.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Button onClick={() => router.push(`/${successData.type}/${successData.slug}`)}>

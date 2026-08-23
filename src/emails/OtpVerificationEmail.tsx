@@ -16,7 +16,7 @@ export default function OtpVerificationEmail({
 }: OtpVerificationEmailProps) {
   return (
     <Html>
-      <Preview>Your FindBack verification code</Preview>
+      <Preview>Your FoundIt verification code</Preview>
       <Container style={container}>
         <Heading style={h1}>Verify your email</Heading>
         
@@ -30,12 +30,12 @@ export default function OtpVerificationEmail({
         </Section>
         
         <Text style={warningText}>
-          <strong>Security Warning:</strong> FindBack will never ask you to share this code. 
+          <strong>Security Warning:</strong> FoundIt will never ask you to share this code. 
           If you did not attempt to register an account, you can safely ignore this email.
         </Text>
         
         <Text style={footer}>
-          &copy; {new Date().getFullYear()} FindBack. All rights reserved. <br/>
+          &copy; {new Date().getFullYear()} FoundIt. All rights reserved. <br/>
           <a href={appUrl} style={footerLink}>{appUrl}</a>
         </Text>
       </Container>

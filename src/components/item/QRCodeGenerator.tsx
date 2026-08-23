@@ -18,9 +18,10 @@ export function QRCodeGenerator({ url, size = 200 }: QRCodeGeneratorProps) {
   useEffect(() => {
     // If the server fallback (localhost) leaked through to the client, forcefully correct it
     if (typeof window !== 'undefined' && url.includes('localhost')) {
-      setActiveUrl(window.location.href);
+      // Defer state update to avoid cascading render warning
+      setTimeout(() => setActiveUrl(window.location.href), 0);
     } else {
-      setActiveUrl(url);
+      setTimeout(() => setActiveUrl(url), 0);
     }
   }, [url]);
 
@@ -53,7 +54,7 @@ export function QRCodeGenerator({ url, size = 200 }: QRCodeGeneratorProps) {
   const handleDownload = () => {
     if (!qrDataUrl) return;
     const link = document.createElement('a');
-    link.download = 'findback-listing-qr.png';
+    link.download = 'foundit-listing-qr.png';
     link.href = qrDataUrl;
     link.click();
   };

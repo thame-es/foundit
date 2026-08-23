@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Html, Head, Preview, Body, Container, Section, Text, Heading, Button, Img, Link } from '@react-email/components';
+import { Html, Head, Preview, Body, Container, Section, Text, Heading, Button, Link } from '@react-email/components';
 
 interface PasswordResetEmailProps {
   displayName: string;
@@ -21,7 +21,10 @@ export const PasswordResetEmail = ({ displayName, resetUrl, appUrl }: PasswordRe
           <Section style={content}>
             <Text style={text}>Hi {displayName},</Text>
             <Text style={text}>
-              Someone recently requested a password change for your FoundIt account. If this was you, you can set a new password here:
+              We received a request to reset the password for your FoundIt account. If you didn&apos;t make this request, you can safely ignore this email.
+            </Text>
+            <Text style={text}>
+              To set a new password, click the button below. This link will expire in 1 hour for your security.
             </Text>
 
             <Section style={buttonContainer}>
@@ -31,10 +34,10 @@ export const PasswordResetEmail = ({ displayName, resetUrl, appUrl }: PasswordRe
             </Section>
 
             <Text style={text}>
-              If you don't want to change your password or didn't request this, just ignore and delete this message.
+              If you don&apos;t want to change your password or didn&apos;t request this, just ignore and delete this message.
             </Text>
             <Text style={subtext}>
-              To keep your account secure, please don't forward this email to anyone.
+              To keep your account secure, please don&apos;t forward this email to anyone.
               This link will expire in 1 hour.
             </Text>
           </Section>

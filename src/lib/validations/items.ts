@@ -3,7 +3,7 @@
 // ===========================================
 
 import { z } from 'zod';
-import { defaultCategories, itemColours } from '@/lib/config';
+import { itemColours } from '@/lib/config';
 
 // ─── Base Common Fields ────────────────────
 const baseItemSchema = z.object({

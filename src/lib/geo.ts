@@ -58,7 +58,7 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string |
   try {
     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
       headers: {
-        'User-Agent': 'FindBack App (Educational)',
+        'User-Agent': 'FoundIt App (Educational)',
         'Accept-Language': 'en'
       },
       next: { revalidate: 86400 } // cache for 24h to avoid hitting rate limits for the same location
@@ -66,7 +66,7 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string |
     if (!res.ok) return null;
     const data = await res.json();
     return data.display_name || null;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
