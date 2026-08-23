@@ -150,7 +150,33 @@ export async function searchItems(params: SearchParams) {
       results.sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity));
     } else if (sort === 'recent_date') {
       results.sort((a, b) => b.itemDate.getTime() - a.itemDate.getTime());
-    } else if (sort === 'newest' || sort === 'best_match') {
+    } else if (sort === 'best_match') {
+      const queryWords = query ? query.toLowerCase().split(/\W+/).filter(w => w.length > 2) : [];
+      
+      results.forEach(item => {
+        let score = 0;
+        if (queryWords.length > 0) {
+          const t = item.title.toLowerCase();
+          const d = item.publicDescription.toLowerCase();
+          const b = (item.brand || '').toLowerCase();
+          
+          for (const w of queryWords) {
+            if (t.includes(w)) score += 10;
+            if (d.includes(w)) score += 5;
+            if (b.includes(w)) score += 5;
+          }
+        }
+        
+        if (item.distance && item.distance !== Infinity) {
+          score -= Math.min(item.distance, 100) * 0.1;
+        }
+        
+        score += item.createdAt.getTime() / 10000000000000; // tiny tie breaker
+        item.relevanceScore = score;
+      });
+      
+      results.sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
+    } else {
       results.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     }
 

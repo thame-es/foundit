@@ -45,48 +45,59 @@ export async function createLostItem(input: CreateLostItemInput): Promise<Action
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + appConfig.listings.expiryDays);
 
-    const item = await db.lostItem.create({
-      data: {
-        user: { connect: { id: user.userId } },
-        slug,
-        category: { connect: { slug: data.categoryId } },
-        title: data.title,
-        publicDescription: data.publicDescription,
-        brand: data.brand,
-        model: data.model,
-        colour: data.colour,
-        quantity: data.quantity,
-        dateLost: new Date(data.dateLost),
-        dateApproximate: data.dateApproximate,
-        timeLost: data.timeLost,
-        city: data.city,
-        region: data.region,
-        country: data.country,
-        area: data.area,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        locationUncertain: data.locationUncertain,
-        distinguishingFeatures: data.distinguishingFeatures,
-        rewardOffered: data.rewardOffered,
-        rewardDescription: data.rewardDescription,
-        contactPreference: data.contactPreference,
-        expiresAt,
-        ...(data.images && data.images.length > 0 ? {
-          images: {
-            create: data.images.map((img: any, index: number) => ({
-              filename: img.filename,
-              originalName: img.originalName,
-              mimeType: img.mimeType,
-              size: img.size,
-              width: img.width,
-              height: img.height,
-              thumbnailPath: img.thumbnailPath,
-              mediumPath: img.mediumPath,
-              order: index,
-            }))
-          }
-        } : {})
-      },
+    const item = await db.$transaction(async (tx) => {
+      const created = await tx.lostItem.create({
+        data: {
+          user: { connect: { id: user.userId } },
+          slug,
+          category: { connect: { slug: data.categoryId } },
+          title: data.title,
+          publicDescription: data.publicDescription,
+          brand: data.brand,
+          model: data.model,
+          colour: data.colour,
+          quantity: data.quantity,
+          dateLost: new Date(data.dateLost),
+          dateApproximate: data.dateApproximate,
+          timeLost: data.timeLost,
+          city: data.city,
+          region: data.region,
+          country: data.country,
+          area: data.area,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          locationUncertain: data.locationUncertain,
+          distinguishingFeatures: data.distinguishingFeatures,
+          rewardOffered: data.rewardOffered,
+          rewardDescription: data.rewardDescription,
+          contactPreference: data.contactPreference,
+          expiresAt,
+          ...(data.images && data.images.length > 0 ? {
+            images: {
+              create: data.images.map((img: any, index: number) => ({
+                filename: img.filename,
+                originalName: img.originalName,
+                mimeType: img.mimeType,
+                size: img.size,
+                width: img.width,
+                height: img.height,
+                thumbnailPath: img.thumbnailPath,
+                mediumPath: img.mediumPath,
+                order: index,
+              }))
+            }
+          } : {})
+        },
+      });
+
+      await tx.matchJob.create({
+        data: {
+          type: 'lost_item_created',
+          payload: JSON.stringify({ itemId: created.id, itemType: 'lost' })
+        }
+      });
+
+      return created;
     });
 
     logger.info('Lost item created', { itemId: item.id, userId: user.userId });
@@ -121,49 +132,60 @@ export async function updateLostItem(input: UpdateLostItemInput): Promise<Action
       slug = createSlug(data.title);
     }
 
-    const item = await db.lostItem.update({
-      where: { id: data.id },
-      data: {
-        slug,
-        categoryId: data.categoryId,
-        title: data.title,
-        publicDescription: data.publicDescription,
-        brand: data.brand,
-        model: data.model,
-        colour: data.colour,
-        quantity: data.quantity,
-        dateLost: data.dateLost ? new Date(data.dateLost) : undefined,
-        dateApproximate: data.dateApproximate,
-        timeLost: data.timeLost,
-        city: data.city,
-        region: data.region,
-        country: data.country,
-        area: data.area,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        locationUncertain: data.locationUncertain,
-        distinguishingFeatures: data.distinguishingFeatures,
-        contactPreference: data.contactPreference,
-      },
-    });
-
-    if (data.images && data.images.length > 0) {
-      await db.itemImage.deleteMany({ where: { lostItemId: item.id } });
-      await db.itemImage.createMany({
-        data: data.images.map((img: any, index: number) => ({
-          lostItemId: item.id,
-          filename: img.filename,
-          originalName: img.originalName,
-          mimeType: img.mimeType,
-          size: img.size,
-          width: img.width,
-          height: img.height,
-          thumbnailPath: img.thumbnailPath,
-          mediumPath: img.mediumPath,
-          order: index,
-        }))
+    const item = await db.$transaction(async (tx) => {
+      const updated = await tx.lostItem.update({
+        where: { id: data.id },
+        data: {
+          slug,
+          categoryId: data.categoryId,
+          title: data.title,
+          publicDescription: data.publicDescription,
+          brand: data.brand,
+          model: data.model,
+          colour: data.colour,
+          quantity: data.quantity,
+          dateLost: data.dateLost ? new Date(data.dateLost) : undefined,
+          dateApproximate: data.dateApproximate,
+          timeLost: data.timeLost,
+          city: data.city,
+          region: data.region,
+          country: data.country,
+          area: data.area,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          locationUncertain: data.locationUncertain,
+          distinguishingFeatures: data.distinguishingFeatures,
+          contactPreference: data.contactPreference,
+        },
       });
-    }
+
+      if (data.images && data.images.length > 0) {
+        await tx.itemImage.deleteMany({ where: { lostItemId: updated.id } });
+        await tx.itemImage.createMany({
+          data: data.images.map((img: any, index: number) => ({
+            lostItemId: updated.id,
+            filename: img.filename,
+            originalName: img.originalName,
+            mimeType: img.mimeType,
+            size: img.size,
+            width: img.width,
+            height: img.height,
+            thumbnailPath: img.thumbnailPath,
+            mediumPath: img.mediumPath,
+            order: index,
+          }))
+        });
+      }
+
+      await tx.matchJob.create({
+        data: {
+          type: 'lost_item_updated',
+          payload: JSON.stringify({ itemId: updated.id, itemType: 'lost' })
+        }
+      });
+
+      return updated;
+    });
 
     logger.info('Lost item updated', { itemId: item.id, userId: user.userId });
     revalidatePath('/lost');
@@ -248,43 +270,54 @@ export async function createFoundItem(input: CreateFoundItemInput): Promise<Acti
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + appConfig.listings.expiryDays);
 
-    const item = await db.foundItem.create({
-      data: {
-        user: { connect: { id: user.userId } },
-        slug,
-        category: { connect: { slug: data.categoryId } },
-        title: data.title,
-        publicDescription: data.publicDescription,
-        brand: data.brand,
-        model: data.model,
-        colour: data.colour,
-        dateFound: new Date(data.dateFound),
-        dateApproximate: data.dateApproximate,
-        timeFound: data.timeFound,
-        city: data.city,
-        region: data.region,
-        country: data.country,
-        area: data.area,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        privateVerificationDetail: data.privateVerificationDetail,
-        expiresAt,
-        ...(data.images && data.images.length > 0 ? {
-          images: {
-            create: data.images.map((img: any, index: number) => ({
-              filename: img.filename,
-              originalName: img.originalName,
-              mimeType: img.mimeType,
-              size: img.size,
-              width: img.width,
-              height: img.height,
-              thumbnailPath: img.thumbnailPath,
-              mediumPath: img.mediumPath,
-              order: index,
-            }))
-          }
-        } : {})
-      },
+    const item = await db.$transaction(async (tx) => {
+      const created = await tx.foundItem.create({
+        data: {
+          user: { connect: { id: user.userId } },
+          slug,
+          category: { connect: { slug: data.categoryId } },
+          title: data.title,
+          publicDescription: data.publicDescription,
+          brand: data.brand,
+          model: data.model,
+          colour: data.colour,
+          dateFound: new Date(data.dateFound),
+          dateApproximate: data.dateApproximate,
+          timeFound: data.timeFound,
+          city: data.city,
+          region: data.region,
+          country: data.country,
+          area: data.area,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          privateVerificationDetail: data.privateVerificationDetail,
+          expiresAt,
+          ...(data.images && data.images.length > 0 ? {
+            images: {
+              create: data.images.map((img: any, index: number) => ({
+                filename: img.filename,
+                originalName: img.originalName,
+                mimeType: img.mimeType,
+                size: img.size,
+                width: img.width,
+                height: img.height,
+                thumbnailPath: img.thumbnailPath,
+                mediumPath: img.mediumPath,
+                order: index,
+              }))
+            }
+          } : {})
+        },
+      });
+
+      await tx.matchJob.create({
+        data: {
+          type: 'found_item_created',
+          payload: JSON.stringify({ itemId: created.id, itemType: 'found' })
+        }
+      });
+
+      return created;
     });
 
     logger.info('Found item created', { itemId: item.id, userId: user.userId });
@@ -319,46 +352,57 @@ export async function updateFoundItem(input: UpdateFoundItemInput): Promise<Acti
       slug = createSlug(data.title);
     }
 
-    const item = await db.foundItem.update({
-      where: { id: data.id },
-      data: {
-        slug,
-        categoryId: data.categoryId,
-        title: data.title,
-        publicDescription: data.publicDescription,
-        brand: data.brand,
-        model: data.model,
-        colour: data.colour,
-        dateFound: data.dateFound ? new Date(data.dateFound) : undefined,
-        dateApproximate: data.dateApproximate,
-        timeFound: data.timeFound,
-        city: data.city,
-        region: data.region,
-        country: data.country,
-        area: data.area,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        privateVerificationDetail: data.privateVerificationDetail,
-      },
-    });
-
-    if (data.images && data.images.length > 0) {
-      await db.itemImage.deleteMany({ where: { foundItemId: item.id } });
-      await db.itemImage.createMany({
-        data: data.images.map((img: any, index: number) => ({
-          foundItemId: item.id,
-          filename: img.filename,
-          originalName: img.originalName,
-          mimeType: img.mimeType,
-          size: img.size,
-          width: img.width,
-          height: img.height,
-          thumbnailPath: img.thumbnailPath,
-          mediumPath: img.mediumPath,
-          order: index,
-        }))
+    const item = await db.$transaction(async (tx) => {
+      const updated = await tx.foundItem.update({
+        where: { id: data.id },
+        data: {
+          slug,
+          categoryId: data.categoryId,
+          title: data.title,
+          publicDescription: data.publicDescription,
+          brand: data.brand,
+          model: data.model,
+          colour: data.colour,
+          dateFound: data.dateFound ? new Date(data.dateFound) : undefined,
+          dateApproximate: data.dateApproximate,
+          timeFound: data.timeFound,
+          city: data.city,
+          region: data.region,
+          country: data.country,
+          area: data.area,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          privateVerificationDetail: data.privateVerificationDetail,
+        },
       });
-    }
+
+      if (data.images && data.images.length > 0) {
+        await tx.itemImage.deleteMany({ where: { foundItemId: updated.id } });
+        await tx.itemImage.createMany({
+          data: data.images.map((img: any, index: number) => ({
+            foundItemId: updated.id,
+            filename: img.filename,
+            originalName: img.originalName,
+            mimeType: img.mimeType,
+            size: img.size,
+            width: img.width,
+            height: img.height,
+            thumbnailPath: img.thumbnailPath,
+            mediumPath: img.mediumPath,
+            order: index,
+          }))
+        });
+      }
+
+      await tx.matchJob.create({
+        data: {
+          type: 'found_item_updated',
+          payload: JSON.stringify({ itemId: updated.id, itemType: 'found' })
+        }
+      });
+
+      return updated;
+    });
 
     logger.info('Found item updated', { itemId: item.id, userId: user.userId });
     revalidatePath('/found');

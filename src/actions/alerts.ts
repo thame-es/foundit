@@ -119,43 +119,85 @@ export async function checkSavedSearchesForMatch(itemType: 'lost' | 'found', ite
     const locationString = [item.area, item.city].filter(Boolean).join(', ');
 
     for (const search of matchesToNotify) {
-      // Create in-app notification
-      await db.notification.create({
-        data: {
-          userId: search.userId,
-          type: 'match_found',
-          title: 'New match for your saved search!',
-          body: `A new ${itemType} item "${item.title}" matches your search: ${search.name}.`,
-          link: itemUrl,
-        }
-      });
+      try {
+        // Use a transaction to ensure we only notify once
+        await db.$transaction(async (tx) => {
+          const existing = await tx.savedSearchAlertDelivery.findUnique({
+            where: {
+              savedSearchId_itemType_itemId: {
+                savedSearchId: search.id,
+                itemType: itemType,
+                itemId: item.id
+              }
+            }
+          });
 
-      // Update the lastCheckedAt timestamp
-      await db.savedSearch.update({
-        where: { id: search.id },
-        data: { lastCheckedAt: new Date() }
-      });
+          if (existing) {
+            // Already delivered/notified
+            return;
+          }
 
-      // Check email prefs (defaults to true if not set or valid JSON)
-      let sendEmail = true;
-      if (search.user.notificationPrefs) {
-        try {
-          const prefs = JSON.parse(search.user.notificationPrefs);
-          if (prefs.email === false) sendEmail = false;
-        } catch (e) {
-          // ignore parsing error
-        }
-      }
+          // Create delivery record
+          const delivery = await tx.savedSearchAlertDelivery.create({
+            data: {
+              savedSearchId: search.id,
+              itemType: itemType,
+              itemId: item.id,
+              emailSent: false
+            }
+          });
 
-      if (sendEmail && search.user.email) {
-        await sendSearchAlertEmail(
-          search.user.email,
-          search.user.displayName,
-          search.name,
-          item.title,
-          itemUrl,
-          locationString
-        );
+          // Create in-app notification
+          await tx.notification.create({
+            data: {
+              userId: search.userId,
+              type: 'match_found',
+              title: 'New match for your saved search!',
+              body: `A new ${itemType} item "${item.title}" matches your search: ${search.name}.`,
+              link: itemUrl,
+            }
+          });
+
+          // Update the lastCheckedAt timestamp
+          await tx.savedSearch.update({
+            where: { id: search.id },
+            data: { lastCheckedAt: new Date() }
+          });
+
+          // Check email prefs (defaults to true if not set or valid JSON)
+          let sendEmail = true;
+          if (search.user.notificationPrefs) {
+            try {
+              const prefs = JSON.parse(search.user.notificationPrefs);
+              if (prefs.email === false) sendEmail = false;
+            } catch (e) {
+              // ignore parsing error
+            }
+          }
+
+          if (sendEmail && search.user.email) {
+            try {
+              await sendSearchAlertEmail(
+                search.user.email,
+                search.user.displayName,
+                search.name,
+                item.title,
+                itemUrl,
+                locationString
+              );
+              // Mark email as sent
+              await tx.savedSearchAlertDelivery.update({
+                where: { id: delivery.id },
+                data: { emailSent: true }
+              });
+            } catch (err) {
+              logger.error('Failed to send search alert email', { error: String(err), searchId: search.id });
+              // We do not fail the transaction if email fails, because the notification was delivered.
+            }
+          }
+        });
+      } catch (err) {
+        logger.error('Transaction failed for alert delivery', { error: String(err), searchId: search.id });
       }
     }
 

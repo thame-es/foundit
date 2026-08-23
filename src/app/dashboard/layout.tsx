@@ -15,6 +15,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   const navItems = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Possible Matches', href: '/dashboard/matches', icon: Search },
     { name: 'My Claims', href: '/dashboard/claims', icon: PackageSearch },
     { name: 'Messages', href: '/dashboard/messages', icon: Mail },
     { name: 'Notifications', href: '/dashboard/notifications', icon: Bell },

@@ -174,6 +174,7 @@ model LostItem {
   reports          Report[]
   conversations    Conversation[]
   claims           Claim[]
+  possibleMatches  PossibleMatch[]
 
   @@index([userId])
   @@index([categoryId])
@@ -218,6 +219,7 @@ model FoundItem {
   claims   Claim[]
   savedBy  SavedItem[]
   reports  Report[]
+  possibleMatches PossibleMatch[]
 
   @@index([userId])
   @@index([categoryId])
@@ -402,6 +404,7 @@ model SavedSearch {
   updatedAt      DateTime @updatedAt
 
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alertDeliveries SavedSearchAlertDelivery[]
 
   @@index([userId])
   @@index([alertsEnabled])
@@ -583,4 +586,58 @@ model BusinessAccount {
   updatedAt      DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Genuine Matching Engine ──────────────────
+
+model PossibleMatch {
+  id           String    @id @default(cuid())
+  lostItemId   String
+  foundItemId  String
+  score        Float     // 0 to 100
+  confidence   String    // strong, possible, weak
+  reasons      String    // JSON string array of reasons
+  status       String    @default("active") // active, dismissed, contacted, resolved, expired
+  notifiedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  lostItem  LostItem  @relation(fields: [lostItemId], references: [id], onDelete: Cascade)
+  foundItem FoundItem @relation(fields: [foundItemId], references: [id], onDelete: Cascade)
+
+  @@unique([lostItemId, foundItemId])
+  @@index([lostItemId])
+  @@index([foundItemId])
+  @@index([status])
+  @@index([score])
+}
+
+model MatchJob {
+  id          String   @id @default(cuid())
+  type        String   // e.g. "lost_item_created", "found_item_created", "item_updated"
+  payload     String   // JSON string with item details (e.g., { itemId, itemType })
+  status      String   @default("pending") // pending, processing, completed, failed
+  error       String?
+  attempts    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  processedAt DateTime?
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model SavedSearchAlertDelivery {
+  id             String   @id @default(cuid())
+  savedSearchId  String
+  itemType       String   // "lost", "found"
+  itemId         String
+  emailSent      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  savedSearch SavedSearch @relation(fields: [savedSearchId], references: [id], onDelete: Cascade)
+
+  @@unique([savedSearchId, itemType, itemId])
+  @@index([savedSearchId])
+  @@index([itemType, itemId])
 }
