@@ -68,7 +68,11 @@ export async function GET(
     // 3. Serve the file
     // 3a. Supabase Redirect
     if (supabaseStorage) {
-      const filePathInBucket = `${type}/${filename}`;
+      let bucketFilename = filename;
+      if (type === 'medium') bucketFilename = `md_${filename}`;
+      if (type === 'thumbnail') bucketFilename = `th_${filename}`;
+      
+      const filePathInBucket = `${type}/${bucketFilename}`;
       if (imageRecord.isPublic) {
         const { data } = supabaseStorage.storage
           .from(appConfig.supabase.storageBucket)
