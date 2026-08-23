@@ -1,6 +1,7 @@
 import { requireAuth } from '@/lib/auth/guards';
 import { User, Shield, Bell, CreditCard } from 'lucide-react';
 import { DeleteAccountSection } from '@/components/dashboard/DeleteAccountSection';
+import { ChangePasswordSection } from '@/components/dashboard/ChangePasswordSection';
 
 export const metadata = {
   title: 'Settings | Dashboard | FoundIt',
@@ -46,21 +47,8 @@ export default async function SettingsPage() {
           </form>
         </div>
 
-        {/* Security Section (Stub) */}
-        <div className="p-6 border-b border-[var(--border-primary)]">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center">
-              <Shield className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold">Security</h2>
-              <p className="text-sm text-[var(--text-secondary)]">Manage your password and security preferences.</p>
-            </div>
-          </div>
-          <button type="button" className="px-6 py-2 border border-[var(--border-primary)] font-medium rounded-xl hover:bg-[var(--bg-secondary)] transition-colors">
-            Change Password
-          </button>
-        </div>
+        {/* Security Section (Change Password) */}
+        <ChangePasswordSection />
 
       </div>
 
