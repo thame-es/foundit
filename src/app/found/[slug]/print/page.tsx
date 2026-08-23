@@ -52,7 +52,7 @@ export default async function FoundItemPrintPage({ params }: { params: Promise<{
         
         {/* Header */}
         <div className="text-center mb-4 sm:mb-6 pb-2 sm:pb-4 border-b-4 border-emerald-100 shrink-0">
-          <h2 className="text-lg sm:text-xl font-bold text-emerald-600 tracking-wider uppercase mb-1">FindBack</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-emerald-600 tracking-wider uppercase mb-1">FoundIt</h2>
           <h1 className="text-4xl sm:text-6xl font-black text-slate-900 uppercase tracking-tight">FOUND ITEM</h1>
         </div>
 
@@ -106,7 +106,7 @@ export default async function FoundItemPrintPage({ params }: { params: Promise<{
             <div className="flex-1 text-center sm:text-left">
               <h4 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">Is this yours?</h4>
               <p className="text-sm sm:text-base text-slate-600 mb-4 max-w-md mx-auto sm:mx-0">
-                Scan the QR code to view more details and securely contact the finder through the FindBack platform to arrange a return.
+                Scan the QR code to view more details and securely contact the finder through the FoundIt platform to arrange a return.
               </p>
               <p className="text-xs text-slate-400 font-mono break-all">{`URL: ${publicUrl}`}</p>
             </div>
