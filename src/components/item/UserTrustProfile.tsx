@@ -54,15 +54,15 @@ export function UserTrustProfile({ user, successfulReturns }: UserTrustProfilePr
 
 export function TrustExplanation() {
   return (
-    <div className="mt-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800">
-      <h4 className="text-sm font-semibold flex items-center gap-1.5 mb-2 text-slate-700 dark:text-slate-300">
+    <div className="mt-4 p-4 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)]">
+      <h4 className="text-sm font-semibold flex items-center gap-1.5 mb-2 text-[var(--text-primary)]">
         <Info className="w-4 h-4" /> How FindBack protects you
       </h4>
-      <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1.5 ml-5 list-disc">
-        <li><strong>Private Verification:</strong> Handover details are kept secret until a claim is verified.</li>
-        <li><strong>In-App Messaging:</strong> Communicate safely without sharing personal contact details.</li>
-        <li><strong>Meeting Safely:</strong> Always arrange handovers in public, well-lit spaces.</li>
-        <li><strong>Reporting:</strong> You can report or block users at any time.</li>
+      <ul className="text-xs text-[var(--text-secondary)] space-y-1.5 ml-5 list-disc">
+        <li><strong className="text-[var(--text-primary)]">Private Verification:</strong> Handover details are kept secret until a claim is verified.</li>
+        <li><strong className="text-[var(--text-primary)]">In-App Messaging:</strong> Communicate safely without sharing personal contact details.</li>
+        <li><strong className="text-[var(--text-primary)]">Meeting Safely:</strong> Always arrange handovers in public, well-lit spaces.</li>
+        <li><strong className="text-[var(--text-primary)]">Reporting:</strong> You can report or block users at any time.</li>
       </ul>
     </div>
   );
