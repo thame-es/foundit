@@ -39,26 +39,26 @@ export default async function FoundItemPrintPage({ params }: { params: Promise<{
   }
 
   return (
-    <div className="min-h-screen bg-white text-black p-8 max-w-4xl mx-auto print:p-0 print:m-0">
+    <div className="min-h-screen bg-white text-black p-2 sm:p-8 max-w-4xl mx-auto print:p-0 print:m-0 overflow-x-hidden">
       
       {/* Non-print control bar */}
-      <div className="mb-8 p-4 bg-slate-100 rounded-xl flex justify-between items-center print:hidden">
-        <p className="text-sm text-slate-600">This page is optimized for A4 portrait printing.</p>
+      <div className="mb-4 sm:mb-8 p-3 sm:p-4 bg-slate-100 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-3 print:hidden">
+        <p className="text-xs sm:text-sm text-slate-600 text-center sm:text-left">This page is optimized for A4 portrait printing.</p>
         <PrintButton colorClass="bg-emerald-600 hover:bg-emerald-700" />
       </div>
 
       {/* Poster Layout */}
-      <div className="border-[12px] border-emerald-600 p-6 sm:p-8 flex flex-col relative print:border-[12px] print:rounded-none print:h-[297mm] print:overflow-hidden box-border bg-white h-auto min-h-[900px]">
+      <div className="border-[6px] sm:border-[12px] border-emerald-600 p-4 sm:p-8 flex flex-col relative print:border-[12px] print:rounded-none print:h-[297mm] print:w-[210mm] print:overflow-hidden box-border bg-white h-auto sm:min-h-[900px] w-full max-w-full">
         
         {/* Header */}
-        <div className="text-center mb-6 pb-4 border-b-4 border-emerald-100 shrink-0">
-          <h2 className="text-xl font-bold text-emerald-600 tracking-wider uppercase mb-1">FindBack</h2>
-          <h1 className="text-5xl sm:text-6xl font-black text-slate-900 uppercase tracking-tight">FOUND ITEM</h1>
+        <div className="text-center mb-4 sm:mb-6 pb-2 sm:pb-4 border-b-4 border-emerald-100 shrink-0">
+          <h2 className="text-lg sm:text-xl font-bold text-emerald-600 tracking-wider uppercase mb-1">FindBack</h2>
+          <h1 className="text-4xl sm:text-6xl font-black text-slate-900 uppercase tracking-tight">FOUND ITEM</h1>
         </div>
 
         {/* Title */}
-        <div className="text-center mb-6 shrink-0">
-          <h3 className="text-3xl sm:text-4xl font-bold text-slate-800 line-clamp-2">{item.title}</h3>
+        <div className="text-center mb-4 sm:mb-6 shrink-0">
+          <h3 className="text-2xl sm:text-4xl font-bold text-slate-900 break-words">{item.title}</h3>
         </div>
 
         <div className="flex-grow flex flex-col items-center justify-center gap-4 min-h-0">
@@ -78,42 +78,45 @@ export default async function FoundItemPrintPage({ params }: { params: Promise<{
             </div>
           )}
 
-          {/* Details */}
-          {/* Details */}
-          <div className="w-full max-w-2xl bg-slate-50 p-3 sm:p-5 rounded-2xl border-2 border-slate-200 text-center shrink-0">
-            <p className="text-base sm:text-lg mb-1 text-slate-700">
-              <span className="font-bold text-slate-900">Category:</span> {item.category.name}
+          {/* Details Box */}
+          <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-200 mb-4 sm:mb-6 shrink-0 w-full">
+            <div className="space-y-2 sm:space-y-3 text-sm sm:text-base text-center">
+              <p className="text-slate-700">
+                <span className="font-bold text-slate-900">Category:</span> {item.category.name}
+              </p>
+              <p className="text-slate-700">
+                <span className="font-bold text-slate-900">Date Found:</span> {dateStr}
+              </p>
+              <div className="text-slate-700">
+                <span className="font-bold text-slate-900">Approximate Area:</span>
+                <div className="line-clamp-2 leading-snug mt-1">{locationText}</div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Description */}
+          <div className="mb-4 sm:mb-auto border-b-2 border-slate-100 pb-4 sm:pb-6 grow w-full">
+            <p className="text-sm sm:text-lg text-slate-700 italic text-center whitespace-pre-wrap leading-relaxed break-words">
+              "{item.publicDescription}"
             </p>
-            <p className="text-base sm:text-lg mb-1 text-slate-700">
-              <span className="font-bold text-slate-900">Date Found:</span> {dateStr}
-            </p>
-            <div className="text-base sm:text-lg text-slate-700">
-              <span className="font-bold text-slate-900">Approximate Area:</span>
-              <div className="line-clamp-2 leading-snug mt-1">{locationText}</div>
+          </div>
+
+          {/* Footer with QR */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-4 sm:pt-6 shrink-0 w-full">
+            <div className="flex-1 text-center sm:text-left">
+              <h4 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">Is this yours?</h4>
+              <p className="text-sm sm:text-base text-slate-600 mb-4 max-w-md mx-auto sm:mx-0">
+                Scan the QR code to view more details and securely contact the finder through the FindBack platform to arrange a return.
+              </p>
+              <p className="text-xs text-slate-400 font-mono break-all">{`URL: ${publicUrl}`}</p>
+            </div>
+            
+            <div className="bg-white p-3 rounded-2xl border-2 border-slate-100 shadow-sm shrink-0">
+              <QRCodeGenerator url={publicUrl} size={140} />
             </div>
           </div>
 
-          <div className="text-center max-w-2xl text-lg sm:text-xl text-slate-800 italic line-clamp-3 shrink-0">
-            "{item.publicDescription}"
-          </div>
         </div>
-
-        {/* Footer / Call to Action */}
-        <div className="mt-6 pt-6 border-t-4 border-emerald-100 flex items-center justify-between shrink-0">
-          <div className="flex-1 pr-6">
-            <h4 className="text-2xl sm:text-3xl font-bold text-emerald-600 mb-2">Is this yours?</h4>
-            <p className="text-lg text-slate-600 leading-snug">
-              Scan the QR code to claim this item. Ownership verification will be required to retrieve it securely.
-            </p>
-            <p className="mt-3 text-base font-medium text-slate-500 truncate">
-              URL: {publicUrl}
-            </p>
-          </div>
-          <div className="flex-shrink-0 bg-white p-2 rounded-xl shadow-md border-2 border-slate-200">
-            <QRCodeGenerator url={publicUrl} size={140} />
-          </div>
-        </div>
-
       </div>
     </div>
   );
