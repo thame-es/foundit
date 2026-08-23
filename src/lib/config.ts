@@ -9,7 +9,7 @@ export const appConfig = {
   name: process.env.APP_NAME || 'FoundIt',
   tagline: process.env.APP_TAGLINE || 'Lost something? Find your way back to it.',
   shortTagline: 'Lost. Found. Reconnected.',
-  url: process.env.APP_URL || 'http://localhost:3000',
+  url: process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : 'http://localhost:3000'),
 
   // Feature Flags
   features: {
