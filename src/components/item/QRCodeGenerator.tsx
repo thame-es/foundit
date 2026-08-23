@@ -12,11 +12,21 @@ interface QRCodeGeneratorProps {
 
 export function QRCodeGenerator({ url, size = 200 }: QRCodeGeneratorProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [activeUrl, setActiveUrl] = useState<string>(url);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (canvasRef.current) {
-      QRCode.toCanvas(canvasRef.current, url, {
+    // If the server fallback (localhost) leaked through to the client, forcefully correct it
+    if (typeof window !== 'undefined' && url.includes('localhost')) {
+      setActiveUrl(window.location.href);
+    } else {
+      setActiveUrl(url);
+    }
+  }, [url]);
+
+  useEffect(() => {
+    if (canvasRef.current && activeUrl) {
+      QRCode.toCanvas(canvasRef.current, activeUrl, {
         width: size,
         margin: 1,
         color: {
@@ -27,7 +37,7 @@ export function QRCodeGenerator({ url, size = 200 }: QRCodeGeneratorProps) {
         if (err) console.error('QR code generation failed', err);
       });
       
-      QRCode.toDataURL(url, {
+      QRCode.toDataURL(activeUrl, {
         width: size * 4, // High res for download
         margin: 1,
         color: {
@@ -38,7 +48,7 @@ export function QRCodeGenerator({ url, size = 200 }: QRCodeGeneratorProps) {
         if (!err) setQrDataUrl(dataUrl);
       });
     }
-  }, [url, size]);
+  }, [activeUrl, size]);
 
   const handleDownload = () => {
     if (!qrDataUrl) return;
