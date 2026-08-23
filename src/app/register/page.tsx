@@ -24,7 +24,9 @@ export default function RegisterPage() {
     const formData = new FormData(e.currentTarget);
     const result = await register(formData);
 
-    if (result.success) {
+    if (result.success && result.needsVerification && result.email) {
+      router.push(`/verify-email?email=${encodeURIComponent(result.email)}`);
+    } else if (result.success) {
       router.push('/dashboard');
       router.refresh();
     } else {

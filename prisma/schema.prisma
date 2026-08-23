@@ -40,8 +40,9 @@ model User {
 
   sessions           Session[]
   passwordResetTokens PasswordResetToken[]
-  verificationTokens VerificationToken[]
-  lostItems          LostItem[]
+  verificationTokens  VerificationToken[]
+  otpChallenges       OtpChallenge[]
+  lostItems           LostItem[]
   foundItems         FoundItem[]
   claims             Claim[]           @relation("ClaimantClaims")
   sentMessages       Message[]         @relation("SentMessages")
@@ -101,6 +102,39 @@ model VerificationToken {
 
   @@index([tokenHash])
   @@index([userId])
+}
+
+model OtpChallenge {
+  id                String    @id @default(cuid())
+  userId            String?
+  email             String
+  purpose           String    // "registration_verification", "password_reset"
+  codeHash          String    // HMAC-SHA-256 hash of the 6-digit OTP
+  expiresAt         DateTime
+  consumedAt        DateTime?
+  failedAttempts    Int       @default(0)
+  maximumAttempts   Int       @default(5)
+  resendAvailableAt DateTime?
+  lastSentAt        DateTime?
+  ipHash            String?
+  locale            String    @default("en")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user              User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email, purpose])
+  @@index([userId])
+}
+
+model RateLimit {
+  id         String   @id @default(cuid())
+  key        String   @unique
+  count      Int      @default(1)
+  resetAt    DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([resetAt])
 }
 
 // ─── Categories ──────────────────────────────

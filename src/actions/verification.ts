@@ -11,7 +11,7 @@ export async function resendVerificationEmail() {
     const session = await getAuthenticatedUser();
     
     // Rate limit: 3 resends per hour
-    enforceRateLimit('general', `resend_${session.userId}`, 3, 60 * 60 * 1000);
+    await enforceRateLimit('general', `resend_${session.userId}`, 3, 60 * 60 * 1000);
 
     const user = await db.user.findUnique({
       where: { id: session.userId },

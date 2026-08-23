@@ -20,7 +20,7 @@ const submitClaimSchema = z.object({
 export async function submitClaim(formData: FormData) {
   try {
     const user = await getAuthenticatedUser();
-    enforceRateLimit('general', user.userId, 10, 60 * 60 * 1000); // 10 claims per hour
+    await enforceRateLimit('general', user.userId, 10, 60 * 60 * 1000); // 10 claims per hour
 
     const dbUser = await db.user.findUnique({ where: { id: user.userId }, select: { emailVerified: true } });
     if (!dbUser?.emailVerified) {

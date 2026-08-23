@@ -7,7 +7,7 @@ import { enforceRateLimit } from '@/lib/rate-limit';
 export async function reportEntity(entityType: 'user' | 'item' | 'lost_item' | 'found_item', entityId: string, reason: string, description: string) {
   try {
     const session = await getAuthenticatedUser();
-    enforceRateLimit('general', session.userId, 10, 60 * 60 * 1000); // 10 reports per hour
+    await enforceRateLimit('general', session.userId, 10, 60 * 60 * 1000); // 10 reports per hour
 
     const data: any = {
       reporterId: session.userId,
@@ -31,7 +31,7 @@ export async function reportEntity(entityType: 'user' | 'item' | 'lost_item' | '
 export async function blockUser(userIdToBlock: string, reason?: string) {
   try {
     const session = await getAuthenticatedUser();
-    enforceRateLimit('general', session.userId, 20, 60 * 60 * 1000);
+    await enforceRateLimit('general', session.userId, 20, 60 * 60 * 1000);
 
     if (session.userId === userIdToBlock) {
       return { success: false, error: 'Cannot block yourself' };

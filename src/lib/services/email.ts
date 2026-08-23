@@ -4,6 +4,7 @@ import { logger } from '@/lib/logger';
 import { appConfig } from '@/lib/config';
 import WelcomeEmailTemplate from '@/emails/WelcomeEmail';
 import VerificationEmailTemplate from '@/emails/VerificationEmail';
+import OtpVerificationEmailTemplate from '@/emails/OtpVerificationEmail';
 import MessageNotificationEmailTemplate from '@/emails/MessageNotificationEmail';
 import SearchAlertEmailTemplate from '@/emails/SearchAlertEmail';
 
@@ -52,9 +53,8 @@ export async function sendWelcomeEmail(to: string, displayName: string) {
     logger.error('Failed to send welcome email', { to, error });
   }
 }
-
 /**
- * Sends an email verification link to users.
+ * Sends an email verification link to users (Legacy Magic Link)
  */
 export async function sendVerificationEmail(to: string, displayName: string, verificationToken: string) {
   const subject = `Verify your email for ${appConfig.name}`;
@@ -83,6 +83,40 @@ export async function sendVerificationEmail(to: string, displayName: string, ver
     logger.info(`Verification email sent to ${to}`);
   } catch (error) {
     logger.error('Failed to send verification email', { to, error });
+  }
+}
+
+/**
+ * Sends a 6-digit OTP verification email to users.
+ */
+export async function sendOtpVerificationEmail(to: string, displayName: string, otp: string) {
+  const subject = `Your FindBack verification code`;
+  const expiryMinutes = parseInt(process.env.OTP_EXPIRY_MINUTES || '10');
+
+  if (!process.env.SMTP_USER) {
+    logger.warn('Skipping sendOtpVerificationEmail: SMTP not configured');
+    return;
+  }
+  
+  const html = await render(
+    OtpVerificationEmailTemplate({
+      displayName,
+      otp,
+      appUrl: appConfig.url,
+      expiryMinutes,
+    })
+  );
+
+  try {
+    await transporter.sendMail({
+      from: defaultFrom,
+      to,
+      subject,
+      html,
+    });
+    logger.info(`OTP Verification email sent to ${to}`);
+  } catch (error) {
+    logger.error('Failed to send OTP verification email', { to, error });
   }
 }
 

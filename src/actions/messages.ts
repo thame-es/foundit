@@ -20,7 +20,7 @@ const sendMessageSchema = z.object({
 export async function sendMessage(formData: FormData) {
   try {
     const user = await getAuthenticatedUser();
-    enforceRateLimit('general', user.userId, 60, 60 * 1000); // 60 msgs per minute
+    await enforceRateLimit('general', user.userId, 60, 60 * 1000); // 60 msgs per minute
 
     const dbUser = await db.user.findUnique({ where: { id: user.userId }, select: { emailVerified: true } });
     if (!dbUser?.emailVerified) {
@@ -162,7 +162,7 @@ export async function sendMessage(formData: FormData) {
 export async function initializeConversation(claimId?: string, lostItemId?: string) {
   try {
     const user = await getAuthenticatedUser();
-    enforceRateLimit('general', user.userId, 10, 60 * 1000); // 10 per min
+    await enforceRateLimit('general', user.userId, 10, 60 * 1000); // 10 per min
 
     const dbUser = await db.user.findUnique({ where: { id: user.userId }, select: { emailVerified: true } });
     if (!dbUser?.emailVerified) {

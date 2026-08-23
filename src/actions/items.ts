@@ -26,7 +26,7 @@ export interface ActionResult<T = any> {
 export async function createLostItem(input: CreateLostItemInput): Promise<ActionResult<{ slug: string }>> {
   try {
     const user = await getAuthenticatedUser();
-    enforceRateLimit('general', user.userId, appConfig.rateLimit.general.max, appConfig.rateLimit.general.windowMs);
+    await enforceRateLimit('general', user.userId, appConfig.rateLimit.general.max, appConfig.rateLimit.general.windowMs);
 
     const dbUser = await db.user.findUnique({ where: { id: user.userId }, select: { emailVerified: true } });
     if (!dbUser?.emailVerified) {
@@ -230,7 +230,7 @@ export async function deleteLostItem(itemId: string): Promise<ActionResult> {
 export async function createFoundItem(input: CreateFoundItemInput): Promise<ActionResult<{ slug: string }>> {
   try {
     const user = await getAuthenticatedUser();
-    enforceRateLimit('general', user.userId, appConfig.rateLimit.general.max, appConfig.rateLimit.general.windowMs);
+    await enforceRateLimit('general', user.userId, appConfig.rateLimit.general.max, appConfig.rateLimit.general.windowMs);
 
     const dbUser = await db.user.findUnique({ where: { id: user.userId }, select: { emailVerified: true } });
     if (!dbUser?.emailVerified) {

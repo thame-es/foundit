@@ -25,6 +25,8 @@ export default function LoginPage() {
     if (result.success) {
       router.push('/dashboard');
       router.refresh();
+    } else if (result.needsVerification && result.email) {
+      router.push(`/verify-email?email=${encodeURIComponent(result.email)}`);
     } else {
       setError(result.error || 'Invalid email or password');
       setLoading(false);

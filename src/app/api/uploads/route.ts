@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Rate Limiting
     const ip = request.headers.get('x-forwarded-for') || '127.0.0.1';
-    const rateLimit = checkRateLimit('upload', session.userId, appConfig.rateLimit.upload.max, appConfig.rateLimit.upload.windowMs);
+    const rateLimit = await checkRateLimit('upload', session.userId, appConfig.rateLimit.upload.max, appConfig.rateLimit.upload.windowMs);
     
     if (!rateLimit.allowed) {
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });

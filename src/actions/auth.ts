@@ -15,21 +15,52 @@ import { enforceRateLimit } from '@/lib/rate-limit';
 import { appConfig } from '@/lib/config';
 import { logger } from '@/lib/logger';
 import { generateToken } from '@/lib/utils';
-import { sendWelcomeEmail, sendVerificationEmail } from '@/lib/services/email';
+import { sendWelcomeEmail, sendVerificationEmail, sendOtpVerificationEmail } from '@/lib/services/email';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 
 // Standard action response type
 export interface ActionResult {
   success: boolean;
   error?: string;
   fieldErrors?: Record<string, string[]>;
+  needsVerification?: boolean;
+  email?: string;
+}
+
+// Generate a random 6-digit string securely
+function generateOtp(): string {
+  return crypto.randomInt(100000, 999999).toString();
+}
+
+// Hash OTP with HMAC using the secret key from environment
+function hashOtp(otp: string): string {
+  const secret = process.env.OTP_HMAC_SECRET;
+  if (!secret) throw new Error('OTP_HMAC_SECRET is not configured');
+  return crypto.createHmac('sha256', secret).update(otp).digest('hex');
+}
+
+// Check if email domain is disposable
+function isDisposableEmail(email: string): boolean {
+  try {
+    const domain = email.split('@')[1].toLowerCase();
+    const listPath = path.join(process.cwd(), 'src/lib/disposable-domains.json');
+    if (fs.existsSync(listPath)) {
+      const domains: string[] = JSON.parse(fs.readFileSync(listPath, 'utf8'));
+      return domains.includes(domain);
+    }
+  } catch (err) {
+    logger.warn('Failed to read disposable domains list', { error: String(err) });
+  }
+  return false;
 }
 
 export async function register(formData: FormData): Promise<ActionResult> {
   try {
-    enforceRateLimit('auth', 'register', appConfig.rateLimit.auth.max, appConfig.rateLimit.auth.windowMs);
+    await enforceRateLimit('auth', 'register', appConfig.rateLimit.auth.max, appConfig.rateLimit.auth.windowMs);
 
     const raw = {
       displayName: formData.get('displayName') as string,
@@ -47,54 +78,82 @@ export async function register(formData: FormData): Promise<ActionResult> {
       };
     }
 
-    const { displayName, email, password } = result.data;
+    const { displayName, email: rawEmail, password } = result.data;
+    const email = rawEmail.toLowerCase().trim();
+
+    if (isDisposableEmail(email)) {
+      return {
+        success: false,
+        fieldErrors: { email: ['Temporary or disposable email addresses are not allowed.'] },
+      };
+    }
 
     // Check if email already exists
     const existingUser = await db.user.findUnique({
       where: { email },
-      select: { id: true },
+      select: { id: true, emailVerified: true },
     });
 
     if (existingUser) {
-      return {
-        success: false,
-        fieldErrors: { email: ['An account with this email already exists'] },
-      };
+      if (existingUser.emailVerified) {
+        return {
+          success: false,
+          fieldErrors: { email: ['An account with this email already exists'] },
+        };
+      }
+      // If unverified, we'll just resend OTP
     }
 
-    // Hash password and create user
     const passwordHash = await hashPassword(password);
-    const user = await db.user.create({
-      data: {
-        displayName,
-        email,
-        passwordHash,
-      },
+    
+    let user;
+    if (existingUser && !existingUser.emailVerified) {
+      // Update pending unverified account safely
+      user = await db.user.update({
+        where: { id: existingUser.id },
+        data: { displayName, passwordHash, status: 'pending_verification' }
+      });
+    } else {
+      // Create new pending unverified account
+      user = await db.user.create({
+        data: {
+          displayName,
+          email,
+          passwordHash,
+          status: 'pending_verification',
+          emailVerified: false
+        },
+      });
+    }
+
+    // Generate and send the registration OTP
+    const otp = generateOtp();
+    const codeHash = hashOtp(otp);
+    const expiresAt = new Date(Date.now() + parseInt(process.env.OTP_EXPIRY_MINUTES || '10') * 60 * 1000);
+
+    // Invalidate existing OTPs for this user/email
+    await db.otpChallenge.updateMany({
+      where: { email, purpose: 'registration_verification', consumedAt: null },
+      data: { consumedAt: new Date() }
     });
 
-    // Create verification token
-    const token = crypto.randomBytes(32).toString('hex');
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-    await db.verificationToken.create({
+    await db.otpChallenge.create({
       data: {
         userId: user.id,
-        tokenHash,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        email,
+        purpose: 'registration_verification',
+        codeHash,
+        expiresAt,
+        locale: 'en'
       }
     });
 
-    // Create session
-    await createSession(user);
-
-    logger.info('User registered', { userId: user.id, email });
+    logger.info('User registration initiated, OTP sent', { userId: user.id, email });
     
-    // Trigger welcome and verification emails (must await in Vercel serverless functions)
-    await Promise.all([
-      sendWelcomeEmail(email, displayName).catch(console.error),
-      sendVerificationEmail(email, displayName, token).catch(console.error)
-    ]);
+    await sendOtpVerificationEmail(email, displayName, otp).catch(console.error);
     
-    return { success: true };
+    // Do NOT create a session yet. Tell frontend to redirect to OTP page.
+    return { success: true, needsVerification: true, email };
   } catch (error) {
     if (error instanceof Error && error.message.includes('Too many requests')) {
       return { success: false, error: 'Too many registration attempts. Please try again later.' };
@@ -106,7 +165,7 @@ export async function register(formData: FormData): Promise<ActionResult> {
 
 export async function login(formData: FormData): Promise<ActionResult> {
   try {
-    enforceRateLimit('auth', 'login', appConfig.rateLimit.auth.max, appConfig.rateLimit.auth.windowMs);
+    await enforceRateLimit('auth', 'login', appConfig.rateLimit.auth.max, appConfig.rateLimit.auth.windowMs);
 
     const raw = {
       email: formData.get('email') as string,
@@ -125,7 +184,7 @@ export async function login(formData: FormData): Promise<ActionResult> {
 
     // Find user by email
     const user = await db.user.findUnique({
-      where: { email },
+      where: { email: email.toLowerCase().trim() },
       select: {
         id: true,
         displayName: true,
@@ -134,6 +193,7 @@ export async function login(formData: FormData): Promise<ActionResult> {
         role: true,
         status: true,
         avatar: true,
+        emailVerified: true
       },
     });
 
@@ -157,6 +217,11 @@ export async function login(formData: FormData): Promise<ActionResult> {
       return { success: false, error: 'Invalid email or password.' };
     }
 
+    // Check if email is verified BEFORE completing login
+    if (!user.emailVerified) {
+      return { success: false, needsVerification: true, email: user.email };
+    }
+
     // Update last login
     await db.user.update({
       where: { id: user.id },
@@ -178,6 +243,145 @@ export async function login(formData: FormData): Promise<ActionResult> {
   }
 }
 
+export async function verifyOtp(formData: FormData): Promise<ActionResult> {
+  try {
+    const rawEmail = formData.get('email') as string;
+    const otp = formData.get('otp') as string;
+    
+    if (!rawEmail || !otp || otp.length !== 6) {
+      return { success: false, error: 'Invalid verification code.' };
+    }
+
+    const email = rawEmail.toLowerCase().trim();
+    await enforceRateLimit('auth', 'update-profile', 10, 60 * 1000);
+
+    const activeChallenge = await db.otpChallenge.findFirst({
+      where: { email, purpose: 'registration_verification', consumedAt: null },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (!activeChallenge) {
+      return { success: false, error: 'Verification session expired. Please resend the code.' };
+    }
+
+    if (activeChallenge.failedAttempts >= activeChallenge.maximumAttempts) {
+      return { success: false, error: 'Too many failed attempts. Please resend the code.' };
+    }
+
+    if (new Date() > activeChallenge.expiresAt) {
+      return { success: false, error: 'Verification code expired. Please resend the code.' };
+    }
+
+    const providedHash = hashOtp(otp);
+    
+    // Constant time comparison
+    const isMatch = crypto.timingSafeEqual(
+      Buffer.from(providedHash, 'hex'),
+      Buffer.from(activeChallenge.codeHash, 'hex')
+    );
+
+    if (!isMatch) {
+      await db.otpChallenge.update({
+        where: { id: activeChallenge.id },
+        data: { failedAttempts: { increment: 1 } }
+      });
+      return { success: false, error: 'Invalid verification code.' };
+    }
+
+    // Atomically consume OTP and activate user
+    const [user] = await db.$transaction([
+      db.user.update({
+        where: { email },
+        data: { 
+          emailVerified: true, 
+          emailVerifiedAt: new Date(),
+          status: 'active'
+        },
+        select: { id: true, displayName: true, email: true, role: true, avatar: true }
+      }),
+      db.otpChallenge.update({
+        where: { id: activeChallenge.id },
+        data: { consumedAt: new Date() }
+      })
+    ]);
+
+    await createSession(user as any);
+    await sendWelcomeEmail(user.email, user.displayName).catch(console.error);
+    
+    logger.info('User verified email and logged in', { userId: user.id });
+    
+    return { success: true };
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Too many requests')) {
+      return { success: false, error: 'Too many attempts. Please try again later.' };
+    }
+    logger.error('Verify OTP error', { error: String(error) });
+    return { success: false, error: 'Something went wrong. Please try again.' };
+  }
+}
+
+export async function resendOtp(formData: FormData): Promise<ActionResult> {
+  try {
+    const rawEmail = formData.get('email') as string;
+    if (!rawEmail) return { success: false, error: 'Email required' };
+    
+    const email = rawEmail.toLowerCase().trim();
+    await enforceRateLimit('auth', `resend_otp_${email}`, 3, 60 * 60 * 1000);
+
+    const user = await db.user.findUnique({
+      where: { email },
+      select: { id: true, displayName: true, emailVerified: true }
+    });
+
+    if (!user || user.emailVerified) {
+      // Generic success to prevent enumeration
+      return { success: true };
+    }
+
+    // Check cooldown
+    const lastChallenge = await db.otpChallenge.findFirst({
+      where: { email, purpose: 'registration_verification' },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const cooldownSeconds = parseInt(process.env.OTP_RESEND_COOLDOWN_SECONDS || '60');
+    if (lastChallenge && (Date.now() - lastChallenge.createdAt.getTime()) < cooldownSeconds * 1000) {
+      return { success: false, error: `Please wait before requesting a new code.` };
+    }
+
+    // Generate new OTP
+    const otp = generateOtp();
+    const codeHash = hashOtp(otp);
+    const expiresAt = new Date(Date.now() + parseInt(process.env.OTP_EXPIRY_MINUTES || '10') * 60 * 1000);
+
+    // Invalidate existing
+    await db.otpChallenge.updateMany({
+      where: { email, purpose: 'registration_verification', consumedAt: null },
+      data: { consumedAt: new Date() }
+    });
+
+    await db.otpChallenge.create({
+      data: {
+        userId: user.id,
+        email,
+        purpose: 'registration_verification',
+        codeHash,
+        expiresAt,
+        locale: 'en'
+      }
+    });
+
+    await sendOtpVerificationEmail(email, user.displayName, otp).catch(console.error);
+
+    return { success: true };
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Too many requests')) {
+      return { success: false, error: 'Too many attempts. Please try again later.' };
+    }
+    return { success: false, error: 'Something went wrong. Please try again.' };
+  }
+}
+
 export async function logout(): Promise<void> {
   await destroySession();
   redirect('/');
@@ -185,7 +389,7 @@ export async function logout(): Promise<void> {
 
 export async function forgotPassword(formData: FormData): Promise<ActionResult> {
   try {
-    enforceRateLimit('auth', 'forgot-password', appConfig.rateLimit.auth.max, appConfig.rateLimit.auth.windowMs);
+    await enforceRateLimit('auth', 'reset-password', appConfig.rateLimit.auth.max, appConfig.rateLimit.auth.windowMs);
 
     const raw = { email: formData.get('email') as string };
     const result = forgotPasswordSchema.safeParse(raw);
