@@ -141,21 +141,21 @@ export default function VerifyEmailPage() {
   }, [otp]);
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
-      <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+    <main className="min-h-screen flex items-center justify-center p-4 bg-[var(--bg-secondary)]">
+      <div className="w-full max-w-md bg-[var(--bg-primary)] rounded-2xl shadow-xl overflow-hidden border border-[var(--border-primary)]">
         <div className="p-8">
-          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mb-6 mx-auto text-blue-600 dark:text-blue-400">
+          <div className="w-12 h-12 bg-[var(--color-primary-100)] dark:bg-[var(--color-primary-900)] rounded-full flex items-center justify-center mb-6 mx-auto text-[var(--color-primary-600)] dark:text-[var(--color-primary-400)]">
             <Mail className="w-6 h-6" />
           </div>
           
-          <h1 className="text-2xl font-bold text-center text-slate-900 dark:text-white mb-2">
+          <h1 className="text-2xl font-bold text-center text-[var(--text-primary)] mb-2">
             Check your email
           </h1>
           
-          <p className="text-slate-600 dark:text-slate-400 text-center mb-8">
+          <p className="text-center mb-8 text-[var(--text-secondary)]">
             We sent a 6-digit verification code to
             <br />
-            <strong className="text-slate-900 dark:text-white font-medium mt-1 inline-block">
+            <strong className="font-medium mt-1 inline-block text-[var(--text-primary)]">
               {maskEmail(email)}
             </strong>
           </p>
@@ -164,7 +164,7 @@ export default function VerifyEmailPage() {
             {error && (
               <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                <p className="text-sm text-red-700 dark:text-red-400 font-medium">
+                <p className="text-sm font-medium text-red-700 dark:text-red-400">
                   {error}
                 </p>
               </div>
@@ -173,7 +173,7 @@ export default function VerifyEmailPage() {
             {success && (
               <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                <p className="text-sm text-green-700 dark:text-green-400 font-medium">
+                <p className="text-sm font-medium text-green-700 dark:text-green-400">
                   {success}
                 </p>
               </div>
@@ -192,7 +192,7 @@ export default function VerifyEmailPage() {
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
                   disabled={isVerifying}
-                  className="w-12 h-14 text-center text-2xl font-bold rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500/50 disabled:opacity-50 transition-all outline-none"
+                  className="w-12 h-14 text-center text-2xl font-bold rounded-xl border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)] disabled:opacity-50 transition-all outline-none"
                   aria-label={`Digit ${index + 1}`}
                 />
               ))}
@@ -201,7 +201,7 @@ export default function VerifyEmailPage() {
             <button
               type="submit"
               disabled={isVerifying || otp.join('').length !== 6}
-              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-6"
+              className="w-full py-3 px-4 bg-[var(--color-primary-600)] hover:bg-[var(--color-primary-700)] text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-6"
             >
               {isVerifying ? (
                 <>
@@ -219,7 +219,7 @@ export default function VerifyEmailPage() {
               type="button"
               onClick={handleResend}
               disabled={cooldown > 0 || isResending}
-              className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-50 disabled:hover:text-slate-600 transition-colors"
+              className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--color-primary-600)] disabled:opacity-50 transition-colors"
             >
               {isResending ? (
                 <span className="flex items-center justify-center gap-2">
@@ -234,8 +234,8 @@ export default function VerifyEmailPage() {
           </div>
         </div>
 
-        <div className="bg-slate-50 dark:bg-slate-800/50 p-4 border-t border-slate-200 dark:border-slate-700">
-          <Link href="/register" className="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 font-medium transition-colors">
+        <div className="bg-[var(--bg-tertiary)] p-4 border-t border-[var(--border-primary)]">
+          <Link href="/register" className="flex items-center justify-center gap-2 text-sm text-[var(--text-tertiary)] hover:text-[var(--text-primary)] font-medium transition-colors">
             <ArrowLeft className="w-4 h-4" />
             Wrong email address?
           </Link>
