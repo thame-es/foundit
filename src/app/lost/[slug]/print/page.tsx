@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { headers } from 'next/headers';
 import { db } from '@/lib/db';
 import { QRCodeGenerator } from '@/components/item/QRCodeGenerator';
 import { appConfig } from '@/lib/config';
@@ -19,7 +20,11 @@ export default async function LostItemPrintPage({ params }: { params: Promise<{ 
 
   if (!item) notFound();
 
-  const publicUrl = `${appConfig.url}/lost/${item.slug}`;
+  const headersList = await headers();
+  const host = headersList.get('x-forwarded-host') || headersList.get('host') || 'localhost:3000';
+  const protocol = headersList.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https');
+  const baseUrl = `${protocol}://${host}`;
+  const publicUrl = `${baseUrl}/lost/${item.slug}`;
   const dateStr = item.dateApproximate 
     ? `Around ${format(item.dateLost, 'MMMM do, yyyy')}`
     : format(item.dateLost, 'MMMM do, yyyy');
