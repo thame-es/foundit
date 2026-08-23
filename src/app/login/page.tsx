@@ -73,7 +73,7 @@ export default function LoginPage() {
                 <label className="block text-sm font-medium text-[var(--text-primary)]">
                   Password
                 </label>
-                <Link href="#" className="text-sm font-medium text-[var(--color-primary-600)] hover:text-[var(--color-primary-500)]">
+                <Link href="/forgot-password" className="text-sm font-medium text-[var(--color-primary-600)] hover:text-[var(--color-primary-500)]">
                   Forgot password?
                 </Link>
               </div>

@@ -15,7 +15,7 @@ import { enforceRateLimit } from '@/lib/rate-limit';
 import { appConfig } from '@/lib/config';
 import { logger } from '@/lib/logger';
 import { generateToken } from '@/lib/utils';
-import { sendWelcomeEmail, sendVerificationEmail, sendOtpVerificationEmail } from '@/lib/services/email';
+import { sendWelcomeEmail, sendVerificationEmail, sendOtpVerificationEmail, sendPasswordResetEmail } from '@/lib/services/email';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import crypto from 'crypto';
@@ -398,7 +398,7 @@ export async function forgotPassword(formData: FormData): Promise<ActionResult> 
     }
 
     const { email } = result.data;
-    const user = await db.user.findUnique({ where: { email }, select: { id: true } });
+    const user = await db.user.findUnique({ where: { email }, select: { id: true, displayName: true } });
 
     // Always return success to prevent email enumeration
     if (!user) {
@@ -424,8 +424,9 @@ export async function forgotPassword(formData: FormData): Promise<ActionResult> 
       },
     });
 
-    // TODO: Send email with reset link when SMTP is configured
-    // For now, log the token in development
+    await sendPasswordResetEmail(email, user.displayName, token).catch(console.error);
+
+    // In development, also log it for easy debugging
     if (process.env.NODE_ENV === 'development') {
       logger.info('Password reset token (dev only)', { token, resetUrl: `${appConfig.url}/reset-password?token=${token}` });
     }

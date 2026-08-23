@@ -7,6 +7,7 @@ import VerificationEmailTemplate from '@/emails/VerificationEmail';
 import OtpVerificationEmailTemplate from '@/emails/OtpVerificationEmail';
 import MessageNotificationEmailTemplate from '@/emails/MessageNotificationEmail';
 import SearchAlertEmailTemplate from '@/emails/SearchAlertEmail';
+import PasswordResetEmailTemplate from '@/emails/PasswordResetEmail';
 
 // Create a transporter using environment variables.
 // If using Gmail, SMTP_HOST="smtp.gmail.com", SMTP_PORT=465, SMTP_SECURE=true
@@ -117,6 +118,39 @@ export async function sendOtpVerificationEmail(to: string, displayName: string, 
     logger.info(`OTP Verification email sent to ${to}`);
   } catch (error) {
     logger.error('Failed to send OTP verification email', { to, error });
+  }
+}
+
+/**
+ * Sends a password reset email to users.
+ */
+export async function sendPasswordResetEmail(to: string, displayName: string, resetToken: string) {
+  const subject = `Reset your password for ${appConfig.name}`;
+  const resetUrl = `${appConfig.url}/reset-password?token=${resetToken}`;
+
+  if (!process.env.SMTP_USER) {
+    logger.warn('Skipping sendPasswordResetEmail: SMTP not configured');
+    return;
+  }
+  
+  const html = await render(
+    PasswordResetEmailTemplate({
+      displayName,
+      resetUrl,
+      appUrl: appConfig.url,
+    })
+  );
+
+  try {
+    await transporter.sendMail({
+      from: defaultFrom,
+      to,
+      subject,
+      html,
+    });
+    logger.info(`Password reset email sent to ${to}`);
+  } catch (error) {
+    logger.error('Failed to send password reset email', { to, error });
   }
 }
 
