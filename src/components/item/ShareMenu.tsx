@@ -23,8 +23,13 @@ export function ShareMenu({ url, title, description, itemId, itemSlug, itemType 
   const menuRef = useRef<HTMLDivElement>(null);
   const { addToast } = useToast();
 
-  // Use the actual browser URL if available, otherwise fallback to the provided prop
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : url;
+  const [currentUrl, setCurrentUrl] = useState(url);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setCurrentUrl(window.location.href);
+    }
+  }, []);
 
   const shareText = `${title}\n\n${description}`;
 
