@@ -1,44 +1,33 @@
 import * as React from 'react';
-import { Html, Head, Preview, Body, Container, Section, Text, Heading, Button, Link } from '@react-email/components';
+import { Html, Head, Preview, Body, Container, Section, Text, Heading, Link } from '@react-email/components';
 
-interface PasswordResetEmailProps {
+interface PasswordChangedEmailProps {
   displayName: string;
-  resetUrl: string;
   appUrl: string;
 }
 
-export const PasswordResetEmail = ({ displayName, resetUrl, appUrl }: PasswordResetEmailProps) => {
+export const PasswordChangedEmail = ({ displayName, appUrl }: PasswordChangedEmailProps) => {
   return (
     <Html>
       <Head />
-      <Preview>Reset your password for FoundIt</Preview>
+      <Preview>Your FoundIt password was changed</Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
-            <Heading style={h1}>Password Reset</Heading>
+            <Heading style={h1}>Password Changed</Heading>
           </Section>
 
           <Section style={content}>
             <Text style={text}>Hi {displayName},</Text>
             <Text style={text}>
-              We received a request to reset the password for your FoundIt account. If you didn&apos;t make this request, you can safely ignore this email.
+              This is a confirmation that your FoundIt password was successfully changed just now.
             </Text>
             <Text style={text}>
-              To set a new password, click the button below. This link will expire in 30 minutes for your security. FoundIt will never ask for your password.
+              For your security, we have automatically signed out all other devices and sessions associated with your account.
             </Text>
 
-            <Section style={buttonContainer}>
-              <Button href={resetUrl} style={button}>
-                Reset Password
-              </Button>
-            </Section>
-
-            <Text style={text}>
-              If you don&apos;t want to change your password or didn&apos;t request this, just ignore and delete this message.
-            </Text>
             <Text style={subtext}>
-              To keep your account secure, please don&apos;t forward this email to anyone.
-              This link will expire in 30 minutes and can only be used once.
+              If you didn&apos;t make this change, please request a password reset immediately using the &quot;Forgot Password&quot; link on the login page or contact support if you need assistance.
             </Text>
           </Section>
 
@@ -76,7 +65,7 @@ const container = {
 };
 
 const header = {
-  backgroundColor: '#2563eb',
+  backgroundColor: '#22c55e', // Green for success
   padding: '32px',
   textAlign: 'center' as const,
 };
@@ -109,23 +98,6 @@ const subtext = {
   borderTop: '1px solid #e2e8f0',
 };
 
-const buttonContainer = {
-  textAlign: 'center' as const,
-  margin: '32px 0',
-};
-
-const button = {
-  backgroundColor: '#2563eb',
-  borderRadius: '8px',
-  color: '#fff',
-  fontSize: '16px',
-  fontWeight: '600',
-  textDecoration: 'none',
-  textAlign: 'center' as const,
-  display: 'inline-block',
-  padding: '12px 24px',
-};
-
 const footer = {
   backgroundColor: '#f1f5f9',
   padding: '24px',
@@ -144,4 +116,4 @@ const footerLink = {
   textDecoration: 'none',
 };
 
-export default PasswordResetEmail;
+export default PasswordChangedEmail;

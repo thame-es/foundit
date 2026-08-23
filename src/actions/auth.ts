@@ -23,25 +23,17 @@ import fs from 'fs';
 import path from 'path';
 
 // Standard action response type
-export interface ActionResult {
+import { generateOtp, hashOtp } from '@/lib/auth/otp';
+export type ActionResult = {
   success: boolean;
   error?: string;
+  message?: string;
   fieldErrors?: Record<string, string[]>;
   needsVerification?: boolean;
   email?: string;
-}
+};
 
-// Generate a random 6-digit string securely
-function generateOtp(): string {
-  return crypto.randomInt(100000, 999999).toString();
-}
 
-// Hash OTP with HMAC using the secret key from environment
-function hashOtp(otp: string): string {
-  const secret = process.env.OTP_HMAC_SECRET;
-  if (!secret) throw new Error('OTP_HMAC_SECRET is not configured');
-  return crypto.createHmac('sha256', secret).update(otp).digest('hex');
-}
 
 // Check if email domain is disposable
 function isDisposableEmail(email: string): boolean {
@@ -193,7 +185,8 @@ export async function login(formData: FormData): Promise<ActionResult> {
         role: true,
         status: true,
         avatar: true,
-        emailVerified: true
+        emailVerified: true,
+        sessionVersion: true,
       },
     });
 
@@ -297,7 +290,7 @@ export async function verifyOtp(formData: FormData): Promise<ActionResult> {
           emailVerifiedAt: new Date(),
           status: 'active'
         },
-        select: { id: true, displayName: true, email: true, role: true, avatar: true }
+        select: { id: true, displayName: true, email: true, role: true, avatar: true, sessionVersion: true }
       }),
       db.otpChallenge.update({
         where: { id: activeChallenge.id },
@@ -560,6 +553,7 @@ export async function updateProfile(formData: FormData): Promise<ActionResult> {
       displayName: result.data.displayName,
       email: currentUser.email,
       avatar: currentUser.avatar,
+      sessionVersion: currentUser.sessionVersion,
     });
 
     revalidatePath('/dashboard');
@@ -622,7 +616,6 @@ export async function deleteAccount(): Promise<ActionResult> {
     await db.foundItem.deleteMany({ where: { userId } });
 
     // 6. Delete auth-related data
-    await db.session.deleteMany({ where: { userId } });
     await db.passwordResetToken.deleteMany({ where: { userId } });
 
     // 7. Delete business account if any

@@ -92,6 +92,7 @@ export async function GET(request: NextRequest) {
         status: true,
         avatar: true,
         googleId: true,
+        sessionVersion: true,
       },
     });
 
@@ -139,6 +140,7 @@ export async function GET(request: NextRequest) {
           status: true,
           avatar: true,
           googleId: true,
+          sessionVersion: true,
         },
       });
 

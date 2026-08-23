@@ -8,6 +8,7 @@ import OtpVerificationEmailTemplate from '@/emails/OtpVerificationEmail';
 import MessageNotificationEmailTemplate from '@/emails/MessageNotificationEmail';
 import SearchAlertEmailTemplate from '@/emails/SearchAlertEmail';
 import PasswordResetEmailTemplate from '@/emails/PasswordResetEmail';
+import PasswordChangedEmailTemplate from '@/emails/PasswordChangedEmail';
 
 // Create a transporter using environment variables.
 // If using Gmail, SMTP_HOST="smtp.gmail.com", SMTP_PORT=465, SMTP_SECURE=true
@@ -124,13 +125,13 @@ export async function sendOtpVerificationEmail(to: string, displayName: string, 
 /**
  * Sends a password reset email to users.
  */
-export async function sendPasswordResetEmail(to: string, displayName: string, resetToken: string) {
-  const subject = `Reset your password for ${appConfig.name}`;
+export async function sendPasswordResetEmail(to: string, displayName: string, resetToken: string): Promise<{ success: boolean; reason?: 'not_configured' | 'temporary_error' | 'permanent_error' }> {
+  const subject = `Reset your FoundIt password`;
   const resetUrl = `${appConfig.url}/reset-password?token=${resetToken}`;
 
   if (!process.env.SMTP_USER) {
     logger.warn('Skipping sendPasswordResetEmail: SMTP not configured');
-    return;
+    return { success: false, reason: 'not_configured' };
   }
   
   const html = await render(
@@ -149,8 +150,47 @@ export async function sendPasswordResetEmail(to: string, displayName: string, re
       html,
     });
     logger.info(`Password reset email sent to ${to}`);
-  } catch (error) {
-    logger.error('Failed to send password reset email', { to, error });
+    return { success: true };
+  } catch (error: unknown) {
+    logger.error('Failed to send password reset email', { to, error: String(error) });
+    const err = error as any;
+    const isPermanent = err.responseCode && err.responseCode >= 500 && err.responseCode <= 599;
+    return { success: false, reason: isPermanent ? 'permanent_error' : 'temporary_error' };
+  }
+}
+
+/**
+ * Sends an email notification when a user's password has been changed.
+ */
+export async function sendPasswordChangedEmail(to: string, displayName: string): Promise<{ success: boolean; reason?: 'not_configured' | 'temporary_error' | 'permanent_error' }> {
+  const subject = `Your FoundIt password was changed`;
+  
+  if (!process.env.SMTP_USER) {
+    logger.warn('Skipping sendPasswordChangedEmail: SMTP not configured');
+    return { success: false, reason: 'not_configured' };
+  }
+  
+  const html = await render(
+    PasswordChangedEmailTemplate({
+      displayName,
+      appUrl: appConfig.url,
+    })
+  );
+
+  try {
+    await transporter.sendMail({
+      from: defaultFrom,
+      to,
+      subject,
+      html,
+    });
+    logger.info(`Password changed email sent to ${to}`);
+    return { success: true };
+  } catch (error: unknown) {
+    logger.error('Failed to send password changed email', { to, error: String(error) });
+    const err = error as any;
+    const isPermanent = err.responseCode && err.responseCode >= 500 && err.responseCode <= 599;
+    return { success: false, reason: isPermanent ? 'permanent_error' : 'temporary_error' };
   }
 }
 

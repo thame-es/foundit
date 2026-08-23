@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/auth/guards';
-import { sendVerificationEmail } from '@/lib/services/email';
+// sendVerificationEmail removed
 import { enforceRateLimit } from '@/lib/rate-limit';
 import crypto from 'crypto';
 
@@ -23,23 +23,31 @@ export async function resendVerificationEmail() {
     }
 
     // Delete existing tokens
-    await db.verificationToken.deleteMany({
-      where: { userId: session.userId }
+    await db.otpChallenge.updateMany({
+      where: { userId: session.userId, purpose: 'registration_verification', consumedAt: null },
+      data: { consumedAt: new Date() }
     });
 
+    const { generateOtp, hashOtp } = await import('@/lib/auth/otp');
+    const { sendOtpVerificationEmail } = await import('@/lib/services/email');
+
     // Create new token
-    const token = crypto.randomBytes(32).toString('hex');
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const otp = generateOtp();
+    const codeHash = hashOtp(otp);
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     
-    await db.verificationToken.create({
+    await db.otpChallenge.create({
       data: {
         userId: session.userId,
-        tokenHash,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        email: user.email,
+        purpose: 'registration_verification',
+        codeHash,
+        expiresAt,
+        locale: 'en'
       }
     });
 
-    await sendVerificationEmail(user.email, user.displayName, token);
+    await sendOtpVerificationEmail(user.email, user.displayName, otp);
 
     return { success: true };
   } catch (error) {

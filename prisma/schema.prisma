@@ -38,9 +38,8 @@ model User {
   // Preferences stored as JSON string
   notificationPrefs String? // JSON: { email: boolean, inApp: boolean }
 
-  sessions           Session[]
+  sessionVersion  Int       @default(1)
   passwordResetTokens PasswordResetToken[]
-  verificationTokens  VerificationToken[]
   otpChallenges       OtpChallenge[]
   lostItems           LostItem[]
   foundItems         FoundItem[]
@@ -65,37 +64,12 @@ model User {
   @@index([createdAt])
 }
 
-model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([expiresAt])
-}
-
 model PasswordResetToken {
   id        String   @id @default(cuid())
   userId    String
   tokenHash String   @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([tokenHash])
-  @@index([userId])
-}
-
-model VerificationToken {
-  id        String   @id @default(cuid())
-  userId    String
-  tokenHash String   @unique
-  expiresAt DateTime
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

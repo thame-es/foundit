@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { LocationSearch } from '@/components/maps/LocationSearch';
 import { Search, Filter, X, MapPin, Bell } from 'lucide-react';
 import { defaultCategories } from '@/lib/config';
-import { createSavedSearch } from '@/actions/savedSearches';
+import { createSavedSearch, CreateSavedSearchInput } from '@/actions/savedSearches';
 
 export function SearchClientFilters() {
   const router = useRouter();
@@ -96,10 +96,10 @@ export function SearchClientFilters() {
     
     const searchName = nameParts.length > 0 ? `Alert: ${nameParts.join(' ')}` : `Saved Search (${new Date().toLocaleDateString()})`;
 
-    const input = {
+    const input: CreateSavedSearchInput = {
       name: searchName,
       query: query || undefined,
-      type: type === 'all' ? 'all' : (type as string) || 'all',
+      type: (type === 'lost' || type === 'found') ? (type as 'lost' | 'found') : 'all',
       categoryId: category || undefined,
       brand: brand || undefined,
       colour: colour || undefined,
@@ -394,10 +394,10 @@ export function EmptySearchState() {
     
     const searchName = nameParts.length > 0 ? `Alert: ${nameParts.join(' ')}` : `Saved Search (${new Date().toLocaleDateString()})`;
 
-    const input = {
+    const input: CreateSavedSearchInput = {
       name: searchName,
       query: query || undefined,
-      type: params.get('type') === 'all' ? 'all' : (params.get('type') as string) || 'all',
+      type: (params.get('type') === 'lost' || params.get('type') === 'found') ? (params.get('type') as 'lost' | 'found') : 'all',
       categoryId: category || undefined,
       brand: params.get('brand') || undefined,
       colour: params.get('colour') || undefined,

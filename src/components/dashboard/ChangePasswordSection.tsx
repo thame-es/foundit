@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { changePassword } from '@/actions/auth';
+import { changePassword } from '@/actions/password';
 import { Shield, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';

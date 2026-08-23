@@ -15,6 +15,7 @@ export interface SessionData {
   displayName: string;
   email: string;
   avatar?: string;
+  sessionVersion: number;
 }
 
 const sessionOptions = {
@@ -37,18 +38,39 @@ export async function getSession(): Promise<IronSession<SessionData>> {
   return getIronSession<SessionData>(cookieStore, sessionOptions);
 }
 
+import { db } from '@/lib/db';
+
 /**
  * Get current user from session, or null if not authenticated
  */
 export async function getCurrentUser(): Promise<SessionData | null> {
   const session = await getSession();
   if (!session.userId) return null;
+
+  try {
+    // Validate sessionVersion against the database
+    const user = await db.user.findUnique({
+      where: { id: session.userId },
+      select: { sessionVersion: true },
+    });
+
+    if (!user || user.sessionVersion !== session.sessionVersion) {
+      // Session has been revoked or user deleted
+      session.destroy();
+      return null;
+    }
+  } catch (error) {
+    // If DB fails, fail open or fail closed? Fail closed for security.
+    return null;
+  }
+
   return {
     userId: session.userId,
     role: session.role,
     displayName: session.displayName,
     email: session.email,
     avatar: session.avatar,
+    sessionVersion: session.sessionVersion,
   };
 }
 
@@ -61,6 +83,7 @@ export async function createSession(user: {
   displayName: string;
   email: string;
   avatar?: string | null;
+  sessionVersion: number;
 }): Promise<void> {
   const session = await getSession();
   session.userId = user.id;
@@ -68,6 +91,7 @@ export async function createSession(user: {
   session.displayName = user.displayName;
   session.email = user.email;
   session.avatar = user.avatar || undefined;
+  session.sessionVersion = user.sessionVersion;
   await session.save();
 }
 
